@@ -2,3 +2,12 @@ google-api-python-client
 python-dotenv
 langchain_together
 langchain
+pymilvus
+sentence-transformers
+youtube-transcript-api
+beautifulsoup4
+requests
+numpy
+fastapi
+uvicorn
+pydantic
