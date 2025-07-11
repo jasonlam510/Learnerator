@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Plan Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="logo-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="logo-circle"></div>
+                    <div class="logo-path"></div>
+                    <div class="logo-dots">
+                        <div class="logo-dot dot-1"></div>
+                        <div class="logo-dot dot-2"></div>
+                        <div class="logo-dot dot-3"></div>
+                    </div>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">LearnFlow</span>
+                    <span class="logo-subtitle">AI Learning Plans</span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="inputSection" class="input-section">
+            <input 
+                type="text" 
+                id="topicInput" 
+                placeholder="Enter a topic to learn (e.g., React, n8n, Python...)"
+                class="topic-input"
+            >
+            <button id="generateBtn" class="generate-btn">Generate Learning Plan</button>
+        </div>
+
+        <div id="learningHeader" class="learning-header" style="display: none;">
+            <div class="learning-header-content">
+                <div class="learning-label">You are now learning</div>
+                <div class="learning-topic" id="learningTopic"></div>
+                <div class="learning-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="progress-text">Your learning journey begins here</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+            <div class="spinner"></div>
+            <p>Generating your learning plan...</p>
+        </div>
+
+        <div id="timelineContainer" class="timeline-container" style="display: none;">
+            <div id="timeline" class="timeline"></div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 

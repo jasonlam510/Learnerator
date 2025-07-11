@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "LearnFlow - AI Learning Plans",
+  "version": "1.0",
+  "description": "Generate personalized learning plans for any topic with AI",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "LearnFlow - AI Learning Plans",
+    "default_icon": {
+      "16": "icon.svg",
+      "32": "icon.svg",
+      "48": "icon.svg",
+      "128": "icon.svg"
+    }
+  },
+  "icons": {
+    "16": "icon.svg",
+    "32": "icon.svg",
+    "48": "icon.svg",
+    "128": "icon.svg"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://localhost:3000"
+  }
+} 
