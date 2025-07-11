@@ -1,46 +1,20 @@
-"""
-RAG Chatbot for Learning Resources
-
-A chatbot that uses Retrieval-Augmented Generation to answer questions
-about content stored in the vector database.
-"""
-
 import os
 import logging
 from typing import List
 from dataclasses import dataclass
 
-# Try to import LLM for chatbot functionality
-try:
-    from langchain_together import Together
-    from langchain_core.prompts import PromptTemplate
-    from dotenv import load_dotenv
-    load_dotenv()
-    LLM_AVAILABLE = True
-except ImportError:
-    LLM_AVAILABLE = False
+from langchain_together import Together
+from langchain_core.prompts import PromptTemplate
+from dotenv import load_dotenv
+load_dotenv()
 
 # Import types - avoid circular import
-from typing import List, TYPE_CHECKING
-if TYPE_CHECKING:
-    from vector_database import VectorDatabase, SearchResult
-else:
-    VectorDatabase = None
-    SearchResult = None
+from typing import List
+from vector_database import SearchResult, ChatResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ChatResponse:
-    """Represents a chatbot response with sources."""
-    answer: str
-    sources: List[any]  # List[SearchResult] - avoiding circular import
-    confidence: float
-    query: str
-    error: str = None
 
 
 class RAGChatbot:
@@ -53,9 +27,6 @@ class RAGChatbot:
     
     def _initialize_llm(self):
         """Initialize the LLM for generating responses."""
-        if not LLM_AVAILABLE:
-            logger.warning("LLM not available. Install langchain_together and set TOGETHER_API_KEY.")
-            return
         
         try:
             together_api_key = os.getenv("TOGETHER_API_KEY")
@@ -209,7 +180,7 @@ Answer:"""
         answer_parts.append("For more detailed information, please refer to the original sources.")
         
         return "\n".join(answer_parts)
-    
+
     def get_similar_questions(self, question: str, limit: int = 3) -> List[str]:
         """Generate similar questions that might be interesting to ask."""
         try:
@@ -237,64 +208,3 @@ Answer:"""
         except Exception as e:
             logger.error(f"Error generating similar questions: {e}")
             return []
-    
-    def chat_session(self):
-        """Start an interactive chat session with the user."""
-        print("\n🤖 Welcome to the Learning Resource Chatbot!")
-        print("💬 Ask me questions about the stored learning resources.")
-        print("🔚 Type 'quit', 'exit', or 'bye' to end the chat.\n")
-        
-        try:
-            while True:
-                # Get user input
-                user_input = input("👤 You: ").strip()
-                
-                # Check for exit commands
-                if user_input.lower() in ['quit', 'exit', 'bye', 'q']:
-                    print("👋 Goodbye! Thanks for chatting!")
-                    break
-                
-                # Skip empty input
-                if not user_input:
-                    continue
-                
-                # Get response from chatbot
-                print("🤖 Assistant: ", end="", flush=True)
-                
-                try:
-                    response = self.ask(user_input)
-                    
-                    # Print the answer
-                    print(response.answer)
-                    
-                    # Show confidence and sources if available
-                    if response.confidence > 0:
-                        print(f"\n📊 Confidence: {response.confidence:.1%}")
-                    
-                    if response.sources:
-                        print(f"\n📚 Sources ({len(response.sources)}):")
-                        for i, source in enumerate(response.sources, 1):
-                            print(f"   {i}. {source.chunk.title[:60]}... (relevance: {source.similarity:.1%})")
-                    
-                    # Show related questions
-                    similar_questions = self.get_similar_questions(user_input, limit=2)
-                    if similar_questions:
-                        print(f"\n💡 You might also ask:")
-                        for q in similar_questions:
-                            print(f"   • {q}")
-                    
-                except Exception as e:
-                    print(f"Sorry, I encountered an error: {e}")
-                    logger.error(f"Chat session error: {e}")
-                
-                print()  # Add spacing between interactions
-                
-        except KeyboardInterrupt:
-            print("\n\n👋 Chat interrupted. Goodbye!")
-        except Exception as e:
-            print(f"\n❌ Chat session error: {e}")
-            logger.error(f"Chat session error: {e}")
-
-def create_chatbot(vector_db: VectorDatabase) -> RAGChatbot:
-    """Create a RAG chatbot instance."""
-    return RAGChatbot(vector_db)

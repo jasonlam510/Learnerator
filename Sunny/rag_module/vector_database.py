@@ -1,25 +1,16 @@
-"""
-Vector Database for Learning Resources
-
-A system to store and search web content and YouTube transcripts using Milvus vector database.
-Extracts content, generates embeddings, and provides semantic search capabilities.
-"""
-
-import os
 import re
 import json
 import hashlib
 import logging
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional
 from dataclasses import dataclass
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse
 import time
 
 import requests
 from bs4 import BeautifulSoup
 from youtube_transcript_api import YouTubeTranscriptApi
 from sentence_transformers import SentenceTransformer
-import numpy as np
 from pymilvus import (
     connections,
     utility,
@@ -29,14 +20,8 @@ from pymilvus import (
     Collection,
     MilvusException
 )
+from rag_chatbot import RAGChatbot
 
-# Import RAG chatbot
-try:
-    from rag_chatbot import RAGChatbot
-    CHATBOT_AVAILABLE = True
-except ImportError:
-    CHATBOT_AVAILABLE = False
-    RAGChatbot = None
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -71,6 +56,7 @@ class ChatResponse:
     sources: List[SearchResult]
     confidence: float
     query: str
+    error: str = None
 
 
 class ContentExtractor:
@@ -453,81 +439,6 @@ class VectorDatabase:
         except Exception as e:
             logger.error(f"Error adding content to database: {e}")
             return False
-    
-    def search(self, query: str, limit: int = 5, content_type: str = None) -> List[SearchResult]:
-        """Search for similar content."""
-        try:
-            # Generate query embedding
-            query_embedding = self.model.encode(query).tolist()
-            
-            # Prepare search parameters
-            search_params = {"metric_type": "COSINE", "params": {"nprobe": 10}}
-            
-            # Add filter if content type specified
-            filter_expr = None
-            if content_type:
-                filter_expr = f'content_type == "{content_type}"'
-            
-            # Perform search
-            results = self.collection.search(
-                data=[query_embedding],
-                anns_field="embedding",
-                param=search_params,
-                limit=limit,
-                expr=filter_expr,
-                output_fields=["content", "source_url", "content_type", "title", 
-                              "chunk_index", "total_chunks", "timestamp", "metadata"]
-            )
-            
-            # Process results
-            search_results = []
-            for hit in results[0]:
-                chunk = ContentChunk(
-                    id=hit.id,
-                    content=hit.entity.get('content'),
-                    source_url=hit.entity.get('source_url'),
-                    content_type=hit.entity.get('content_type'),
-                    title=hit.entity.get('title'),
-                    chunk_index=hit.entity.get('chunk_index'),
-                    total_chunks=hit.entity.get('total_chunks'),
-                    timestamp=hit.entity.get('timestamp'),
-                    metadata=json.loads(hit.entity.get('metadata', '{}'))
-                )
-                
-                search_results.append(SearchResult(
-                    chunk=chunk,
-                    similarity=hit.score
-                ))
-            
-            return search_results
-            
-        except Exception as e:
-            logger.error(f"Error searching database: {e}")
-            return []
-    
-    def get_collection_stats(self) -> Dict:
-        """Get statistics about the collection."""
-        try:
-            stats = self.collection.num_entities
-            return {
-                'total_chunks': stats,
-                'collection_name': self.collection_name
-            }
-        except Exception as e:
-            logger.error(f"Error getting collection stats: {e}")
-            return {}
-    
-    def delete_by_url(self, source_url: str) -> bool:
-        """Delete all chunks from a specific URL."""
-        try:
-            expr = f'source_url == "{source_url}"'
-            self.collection.delete(expr)
-            self.collection.flush()
-            logger.info(f"Deleted content from {source_url}")
-            return True
-        except Exception as e:
-            logger.error(f"Error deleting content: {e}")
-            return False
 
 
 class LearningResourceVectorDB:
@@ -541,18 +452,7 @@ class LearningResourceVectorDB:
     def initialize(self):
         """Initialize the vector database connection."""
         self.vector_db.connect()
-        
-        # Initialize chatbot
-        self.chatbot = None
-        if CHATBOT_AVAILABLE:
-            try:
-                self.chatbot = RAGChatbot(self.vector_db)
-                logger.info("RAG Chatbot initialized successfully")
-            except Exception as e:
-                logger.error(f"Failed to initialize chatbot: {e}")
-        else:
-            logger.warning("Chatbot not available. Install rag_chatbot module.")
-            
+        self.chatbot = RAGChatbot(self.vector_db)
         logger.info("Learning Resource Vector Database initialized successfully")
     
     def process_urls(self, urls: List[str]) -> Dict:
@@ -612,26 +512,6 @@ class LearningResourceVectorDB:
         
         return results
     
-    def search_resources(self, query: str, limit: int = 5, content_type: str = None) -> List[SearchResult]:
-        """Search for learning resources."""
-        return self.vector_db.search(query, limit, content_type)
-    
-    def get_stats(self) -> Dict:
-        """Get database statistics."""
-        return self.vector_db.get_collection_stats()
-    
-    def ask_question(self, question: str, max_sources: int = 3) -> ChatResponse:
-        """Ask a question about the stored content."""
-        if not self.chatbot:
-            raise RuntimeError("Database not initialized. Call initialize() first.")
-        return self.chatbot.ask(question, max_sources)
-    
-    def start_chat(self):
-        """Start an interactive chat session."""
-        if not self.chatbot:
-            raise RuntimeError("Database not initialized. Call initialize() first.")
-        self.chatbot.chat_session()
-    
     def add_resource(self, url: str, title: str = None) -> bool:
         """Add a single resource to the database."""
         try:
@@ -668,49 +548,3 @@ def create_learning_vector_db(milvus_host: str = "localhost", milvus_port: str =
     db = LearningResourceVectorDB(milvus_host, milvus_port)
     db.initialize()
     return db
-
-if __name__ == "__main__":
-    # Example usage
-    print("Learning Resource Vector Database")
-    print("Note: Make sure Milvus standalone is running on localhost:19530")
-    
-    try:
-        # Initialize database
-        db = create_learning_vector_db()
-        
-        # Example URLs (you can replace with actual URLs)
-        test_urls = [
-            "https://realpython.com/pandas-python-explore-dataset/",
-            "https://youtube.com/watch?v=vmEHCJofslg"  # Example YouTube URL
-        ]
-        
-        print(f"\nProcessing {len(test_urls)} URLs...")
-        results = db.process_urls(test_urls)
-        
-        print(f"\nProcessing Results:")
-        print(f"Processed: {results['processed']}")
-        print(f"Failed: {results['failed']}")
-        print(f"Skipped: {results['skipped']}")
-        
-        # Example search
-        print(f"\nSearching for 'pandas dataframe'...")
-        search_results = db.search_resources("pandas dataframe", limit=3)
-        
-        for i, result in enumerate(search_results, 1):
-            print(f"\n{i}. {result.chunk.title}")
-            print(f"   URL: {result.chunk.source_url}")
-            print(f"   Type: {result.chunk.content_type}")
-            print(f"   Similarity: {result.similarity:.3f}")
-            print(f"   Content preview: {result.chunk.content[:200]}...")
-        
-        # Get stats
-        stats = db.get_stats()
-        print(f"\nDatabase Stats: {stats}")
-        
-        # Example chatbot interaction
-        print("\nStarting chatbot interaction...")
-        db.start_chat()
-        
-    except Exception as e:
-        print(f"Error: {e}")
-        print("\nMake sure Milvus standalone is running. See setup instructions.")

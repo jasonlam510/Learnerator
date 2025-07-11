@@ -1,10 +1,3 @@
-"""
-FastAPI Backend for Learning Resource Chatbot
-
-Provides REST API endpoints for the RAG chatbot functionality.
-Handles user questions and returns AI-generated responses.
-"""
-
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -16,7 +9,6 @@ from contextlib import asynccontextmanager
 
 # Import our modules
 from vector_database import create_learning_vector_db, LearningResourceVectorDB
-from rag_chatbot import RAGChatbot, ChatResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 # Global variables
 db: Optional[LearningResourceVectorDB] = None
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,8 +39,6 @@ async def lifespan(app: FastAPI):
         if db:
             logger.info("Closing database connections...")
 
-
-# FastAPI app
 app = FastAPI(
     title="Learning Resource Chatbot API",
     description="AI-powered chatbot for answering questions about stored learning resources",
@@ -57,7 +46,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, specify your frontend URL
@@ -66,12 +54,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Pydantic models for API
 class QuestionRequest(BaseModel):
     question: str = Field(..., min_length=1, max_length=1000, description="The question to ask")
     max_sources: int = Field(default=3, ge=1, le=10, description="Maximum number of sources to use")
-
 
 class SourceInfo(BaseModel):
     title: str
@@ -80,7 +65,6 @@ class SourceInfo(BaseModel):
     similarity: float
     content_preview: str
 
-
 class ChatResponseModel(BaseModel):
     answer: str
     sources: List[SourceInfo]
@@ -88,7 +72,6 @@ class ChatResponseModel(BaseModel):
     query: str
     timestamp: str
     error: Optional[str] = None
-
 
 class AddResourceRequest(BaseModel):
     url: str = Field(..., description="URL of the resource to add")
