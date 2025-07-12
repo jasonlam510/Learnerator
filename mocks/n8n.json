@@ -1,0 +1,373 @@
+{
+    "task_name": "Automating Email-to-Schedule with n8n and LLMs",
+    "task_stages": [
+      {
+        "stage_name": "Introduction to n8n and No-Code Automation",
+        "stage_details": "Understand what n8n is, how it works, and how to build basic automations using its visual workflow editor.",
+        "urls": [
+          "https://docs.n8n.io/getting-started/",
+          "https://www.youtube.com/playlist?list=PLqv_v3yYwGkS1B3X8wQ1iHk5Q0zJ5D9lR",
+          "https://n8n.io/blog/n8n-beginners-guide/"
+        ],
+        "quiz": [
+          {
+            "question": "What is n8n mainly used for?",
+            "options": [
+              "A. Hosting static websites",
+              "B. Automating workflows by connecting apps and services",
+              "C. Running SQL databases",
+              "D. Managing cloud infrastructure"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "Which feature does n8n’s visual editor provide?",
+            "options": [
+              "A. Command-line interface only",
+              "B. Drag-and-drop workflow building",
+              "C. Spreadsheet data editing",
+              "D. Video conferencing"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "Which statement about n8n’s licensing is correct?",
+            "options": [
+              "A. It is completely closed-source software.",
+              "B. It offers an open-source, self-host option.",
+              "C. You must purchase a license before any use.",
+              "D. It is limited to Windows only."
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "What prerequisite do you typically need to self-host n8n?",
+            "options": [
+              "A. Node.js runtime",
+              "B. Microsoft Office",
+              "C. Adobe Photoshop",
+              "D. An FTP client only"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "In n8n, a workflow execution is usually triggered by ________.",
+            "options": [
+              "A. A Node.js package install",
+              "B. A trigger node event or a manual run",
+              "C. Editing CSS files",
+              "D. Opening a PowerPoint deck"
+            ],
+            "correctIndex": 1
+          }
+        ]
+      },
+      {
+        "stage_name": "Connecting to Email Accounts in n8n",
+        "stage_details": "Learn how to connect n8n to your email account to fetch and process incoming emails.",
+        "urls": [
+          "https://docs.n8n.io/integrations/builtin/email/",
+          "https://www.youtube.com/watch?v=5fGz5pQyQ4A",
+          "https://community.n8n.io/t/how-to-fetch-emails-using-imap/218"
+        ],
+        "quiz": [
+          {
+            "question": "Which node is typically used to fetch emails in n8n?",
+            "options": [
+              "A. HTTP Request Node",
+              "B. Email Node (IMAP/SMTP)",
+              "C. Webhook Node",
+              "D. Code Node"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "What protocol can n8n use to fetch emails from a mailbox?",
+            "options": [
+              "A. FTP",
+              "B. IMAP",
+              "C. SSH",
+              "D. DNS"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "To SEND an email from n8n you would most likely use ________.",
+            "options": [
+              "A. IMAP Fetch",
+              "B. SMTP option of the Email node",
+              "C. RSS Feed node",
+              "D. Merge node"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "Gmail accounts often require enabling which setting for IMAP access?",
+            "options": [
+              "A. POP3 only",
+              "B. IMAP access in Gmail settings",
+              "C. Two-factor authentication OFF",
+              "D. Dark mode"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "When filtering which emails should trigger a workflow, you can set conditions in ________.",
+            "options": [
+              "A. The credentials screen only",
+              "B. The Email node’s ‘Filters’/‘Rules’ parameters",
+              "C. Browser developer tools",
+              "D. The n8n desktop app"
+            ],
+            "correctIndex": 1
+          }
+        ]
+      },
+      {
+        "stage_name": "Calling LLM APIs from n8n Workflows",
+        "stage_details": "Understand how to connect n8n to an LLM (e.g., OpenAI’s GPT) and send text for processing.",
+        "urls": [
+          "https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/",
+          "https://www.youtube.com/watch?v=4g6z8nQzF5E",
+          "https://platform.openai.com/docs/quickstart"
+        ],
+        "quiz": [
+          {
+            "question": "Which n8n node is commonly used to call external APIs like OpenAI?",
+            "options": [
+              "A. Email Node",
+              "B. Webhook Node",
+              "C. HTTP Request Node",
+              "D. Google Sheets Node"
+            ],
+            "correctIndex": 2
+          },
+          {
+            "question": "What does LLM stand for?",
+            "options": [
+              "A. Large Language Model",
+              "B. Local Linux Machine",
+              "C. Linear Log Monitor",
+              "D. Low-Level Module"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Where do you store the OpenAI API key securely in n8n?",
+            "options": [
+              "A. In plain text inside every node",
+              "B. In Credentials under the HTTP Request node",
+              "C. In a Word document",
+              "D. Nowhere, it’s not required"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "To send dynamic email text to the OpenAI API, which field holds the variable in an HTTP Request node?",
+            "options": [
+              "A. URL parameter",
+              "B. Request Body / JSON",
+              "C. Response Mapping",
+              "D. Node description"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "A common response format returned by the OpenAI completions endpoint is ________.",
+            "options": [
+              "A. Plain CSV only",
+              "B. JSON with choices array",
+              "C. Binary image data",
+              "D. SOAP XML envelope"
+            ],
+            "correctIndex": 1
+          }
+        ]
+      },
+      {
+        "stage_name": "Parsing Email Text and Designing Prompts",
+        "stage_details": "Learn how to extract relevant information from email content and craft effective prompts for the LLM.",
+        "urls": [
+          "https://docs.n8n.io/code/data-transformation/",
+          "https://platform.openai.com/docs/guides/prompt-engineering",
+          "https://community.n8n.io/t/parsing-email-content/2462"
+        ],
+        "quiz": [
+          {
+            "question": "What is prompt engineering?",
+            "options": [
+              "A. Writing emails faster",
+              "B. Designing clear instructions for LLMs to follow",
+              "C. Compressing data",
+              "D. Building UI components"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "Which n8n feature helps transform incoming data?",
+            "options": [
+              "A. Static HTML Pages",
+              "B. Data Transformation / Code Nodes",
+              "C. Video Calls",
+              "D. Database Indexing"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "A good prompt should usually include ________.",
+            "options": [
+              "A. Ambiguous instructions",
+              "B. Clear context and desired output format",
+              "C. Binary data only",
+              "D. Empty strings"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "Which node can you use to run custom JavaScript for parsing email text?",
+            "options": [
+              "A. Code node",
+              "B. Google Sheets node",
+              "C. FTP node",
+              "D. Telegram node"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Regular expressions in n8n are useful for ________.",
+            "options": [
+              "A. Styling the UI",
+              "B. Extracting patterns like dates from text",
+              "C. Running shell scripts",
+              "D. Sending push notifications"
+            ],
+            "correctIndex": 1
+          }
+        ]
+      },
+      {
+        "stage_name": "Generating and Storing Suggested Schedules",
+        "stage_details": "Build the final part of your workflow: take the LLM’s response and format, store, or send the suggested schedule as needed.",
+        "urls": [
+          "https://docs.n8n.io/code/formatting/",
+          "https://docs.n8n.io/integrations/builtin/app-nodes/n8n-nodes-base.googlecalendar/",
+          "https://www.youtube.com/watch?v=Yw9XlL5w2gU"
+        ],
+        "quiz": [
+          {
+            "question": "Which integration allows creating calendar events in n8n?",
+            "options": [
+              "A. Google Calendar Node",
+              "B. Email Node",
+              "C. FTP Node",
+              "D. Webhook Node"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Which node helps you modify text output in workflows?",
+            "options": [
+              "A. Formatting / Code Nodes",
+              "B. Video Nodes",
+              "C. IMAP Nodes",
+              "D. SSH Nodes"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "If you want to store schedules in a spreadsheet, you could use ________.",
+            "options": [
+              "A. Google Sheets Node",
+              "B. Discord Node",
+              "C. FTP Node",
+              "D. Binary Data Node"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Before writing to Google Calendar, which OAuth credential must be set up?",
+            "options": [
+              "A. Twitter API key",
+              "B. Google Calendar OAuth2",
+              "C. AWS IAM role",
+              "D. Slack token"
+            ],
+            "correctIndex": 1
+          },
+          {
+            "question": "To format the LLM response as Markdown, you could use ________.",
+            "options": [
+              "A. Set Node with expressions",
+              "B. Binary Node only",
+              "C. Desktop Notepad",
+              "D. PDF Generator node"
+            ],
+            "correctIndex": 0
+          }
+        ]
+      },
+      {
+        "stage_name": "Bringing It All Together – Building and Testing Your Workflow",
+        "stage_details": "Combine all previous steps to build, test, and refine your complete email-to-schedule automation.",
+        "urls": [
+          "https://n8n.io/workflows/",
+          "https://docs.n8n.io/workflows/testing/",
+          "https://community.n8n.io/t/email-to-calendar-automation/5022"
+        ],
+        "quiz": [
+          {
+            "question": "Why is testing workflows important in n8n?",
+            "options": [
+              "A. To ensure each step works as expected",
+              "B. To host static sites",
+              "C. To enable live video calls",
+              "D. To store passwords"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Where can you find ready-made workflows for inspiration?",
+            "options": [
+              "A. n8n.io/workflows",
+              "B. Video conferencing apps",
+              "C. Spreadsheet software",
+              "D. DNS servers"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Which feature lets you simulate a workflow run without triggering live actions?",
+            "options": [
+              "A. Manual execution mode",
+              "B. Deploy to production",
+              "C. Dark mode",
+              "D. CSS editor"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "Version control of workflows helps you ________.",
+            "options": [
+              "A. Revert to previous edits",
+              "B. Change font color",
+              "C. Increase web hosting bandwidth",
+              "D. Compress images"
+            ],
+            "correctIndex": 0
+          },
+          {
+            "question": "The Executions list in n8n allows you to ________.",
+            "options": [
+              "A. View successful and failed runs",
+              "B. Play video tutorials",
+              "C. Export Photoshop files",
+              "D. Change user passwords"
+            ],
+            "correctIndex": 0
+          }
+        ]
+      }
+    ],
+    "isfinished": false
+  }
+  

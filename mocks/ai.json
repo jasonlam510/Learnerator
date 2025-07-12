@@ -1,0 +1,257 @@
+{
+  "task_name": "Exploring Agentic AI in Business Automation",
+  "task_stages": [
+    {
+      "stage_name": "Foundations of Agentic AI in Business",
+      "stage_details": "Understand what Agentic AI is, why it matters for business automation, and identify key beginner concepts and terminology.",
+      "urls": [
+        "https://beam.ai/agentic-insights/what-is-agentic-ai-the-2025-beginner-s-guide-for-entrepreneurs",
+        "https://www.capably.ai/resources/agentic-ai",
+        "https://www.mendix.com/blog/guide-to-agentic-ai/",
+        "https://www.chaione.com/blog/agentic-ai-a-beginners-guide"
+      ],
+      "quiz": [
+        {
+          "question": "Agentic AI is best described as AI that _____.",
+          "options": [
+            "A. Passively returns search results only",
+            "B. Acts autonomously to pursue goals and make decisions",
+            "C. Requires constant human coding for each action",
+            "D. Only analyzes historical data without acting"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "Which capability is a hallmark of Agentic AI?",
+          "options": [
+            "A. Batch image compression",
+            "B. Self-driven reasoning and planning",
+            "C. Static rule-based routing only",
+            "D. Manual spreadsheet entry"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "A key business benefit of Agentic AI is _____.",
+          "options": [
+            "A. Eliminating all employees immediately",
+            "B. Proactive, continuous process optimization",
+            "C. Converting PDFs to Word docs",
+            "D. Higher electricity consumption"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "In the sense-plan-act loop, the “plan” step mainly involves _____.",
+          "options": [
+            "A. Random guessing",
+            "B. Choosing a sequence of actions toward a goal",
+            "C. Compressing images",
+            "D. Sending raw logs to storage"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "Which industry is often cited as an early adopter of Agentic AI for customer engagement?",
+          "options": [
+            "A. Heavy metal mining",
+            "B. E-commerce and retail",
+            "C. Antique book restoration",
+            "D. Lumber milling"
+          ],
+          "correctIndex": 1
+        }
+      ]
+    },
+    {
+      "stage_name": "Beginner Tools for Agentic AI and Automation",
+      "stage_details": "Get hands-on with beginner-friendly tools for Agentic AI, including low-code platforms, Microsoft Copilot, and simple Python frameworks.",
+      "urls": [
+        "https://www.youtube.com/watch?v=g5pY1Tb_r4g",
+        "https://www.youtube.com/watch?v=d-CuF6dlqLg",
+        "https://www.youtube.com/watch?v=vF2Z4T97xcQ",
+        "https://www.getpassionfruit.com/blog/how-to-build-your-first-ai-workflow-with-n8n-beginners-guide",
+        "https://www.udemy.com/course/ai-agents-ai-automation-the-practical-agentic-ai-guide/"
+      ],
+      "quiz": [
+        {
+          "question": "Microsoft Copilot is primarily integrated into _____.",
+          "options": [
+            "A. Spreadsheet macros only",
+            "B. Microsoft 365 apps like Word and Excel",
+            "C. Stand-alone gaming consoles",
+            "D. BIOS firmware"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "Low-code platforms help beginners by _____.",
+          "options": [
+            "A. Eliminating all configuration UIs",
+            "B. Providing visual drag-and-drop workflow builders",
+            "C. Requiring assembly language knowledge",
+            "D. Only supporting XML scripts"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "The n8n tutorial demonstrates creating a workflow that _____.",
+          "options": [
+            "A. Mines cryptocurrency",
+            "B. Connects APIs and automates tasks without heavy coding",
+            "C. Formats hard drives",
+            "D. Installs device drivers"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "Which Python framework is mentioned for building simple AI agents?",
+          "options": [
+            "A. Django-REST only",
+            "B. LangChain",
+            "C. TensorFlow Serving exclusively",
+            "D. Flask-SQLAlchemy"
+          ],
+          "correctIndex": 1
+        },
+        {
+          "question": "A key advantage of beginner-friendly agent tools is _____.",
+          "options": [
+            "A. Unlimited GPU credit",
+            "B. Quick prototyping with minimal code",
+            "C. Mandatory C++ compilation",
+            "D. Single-threaded only"
+          ],
+          "correctIndex": 1
+        }
+      ]
+    },
+    {
+      "stage_name": "Real-World Business Use Cases and Case Studies",
+      "stage_details": "Discover how businesses are applying Agentic AI for customer service, support, and workflow optimization. Learn from practical examples and measurable outcomes.",
+      "urls": [
+        "https://www.vktr.com/ai-disruption/5-ai-case-studies-in-customer-service-and-support/",
+        "https://www.japeto.ai/chatbots-in-industry-customer-service-case-studies/",
+        "https://www.creolestudios.com/real-world-ai-agent-case-studies/",
+        "https://www.chaione.com/blog/agentic-ai-a-beginners-guide"
+      ],
+      "quiz": [
+        {
+          "question": "A common KPI improved by Agentic AI chatbots is _____.",
+          "options": [
+            "A. Customer response time",
+            "B. Number of paper forms printed",
+            "C. Warehouse floor size",
+            "D. Server rack temperature"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "In case studies, ROI is often demonstrated by _____.",
+          "options": [
+            "A. Reduced manual support tickets",
+            "B. Increased on-premise faxing",
+            "C. Higher ink cartridge usage",
+            "D. Longer delivery times"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "Which sector showed significant cost savings with AI support agents?",
+          "options": [
+            "A. Telecommunications",
+            "B. Brick-laying services",
+            "C. Vintage car restoration",
+            "D. Candle-making craft"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "Agentic AI can escalate complex cases to humans via _____.",
+          "options": [
+            "A. Automated transfer or hand-off logic",
+            "B. Random email spam",
+            "C. CPU overclocking",
+            "D. Faxing error codes"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "One highlighted benefit of AI agents in support is _____.",
+          "options": [
+            "A. 24/7 availability without fatigue",
+            "B. Guaranteed 0% error rate forever",
+            "C. Free electricity",
+            "D. Eliminating all documentation"
+          ],
+          "correctIndex": 0
+        }
+      ]
+    },
+    {
+      "stage_name": "Building Your First Agentic AI Workflows",
+      "stage_details": "Apply your knowledge by building simple Agentic AI workflows using beginner-friendly tools and frameworks. Learn basic Python automation and explore agent frameworks like LangChain.",
+      "urls": [
+        "https://www.youtube.com/watch?v=8BV9TW490nQ",
+        "https://www.singlestore.com/blog/beginners-guide-to-langchain/",
+        "https://python.langchain.com/docs/tutorials/",
+        "https://www.youtube.com/watch?v=w0H1-b044KY",
+        "https://flowster.app/workflow-automation-for-beginners-secrets-to-success/",
+        "https://www.blinkops.com/blog/ai-workflow-automation"
+      ],
+      "quiz": [
+        {
+          "question": "LangChain helps developers by providing _____.",
+          "options": [
+            "A. A framework for chaining LLM calls and tools",
+            "B. A PDF editing suite",
+            "C. A database migration tool only",
+            "D. GPU driver utilities"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "A simple agent workflow often starts with _____.",
+          "options": [
+            "A. Defining the agent’s goal or task",
+            "B. Formatting the motherboard",
+            "C. Compressing PNG files",
+            "D. Installing OS updates"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "When integrating Python scripts in an automation, you typically use _____.",
+          "options": [
+            "A. Code nodes or Python SDK",
+            "B. .exe files only",
+            "C. Spreadsheet macros",
+            "D. BIOS settings"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "Which video resource demonstrates building and selling AI agents?",
+          "options": [
+            "A. YouTube ID w0H1-b044KY",
+            "B. A VHS tutorial",
+            "C. A fax demo",
+            "D. A TikTok dance"
+          ],
+          "correctIndex": 0
+        },
+        {
+          "question": "To identify tasks to automate, experts recommend _____.",
+          "options": [
+            "A. Mapping repetitive, rule-based processes",
+            "B. Randomly picking any task",
+            "C. Avoiding documentation",
+            "D. Increasing meeting length"
+          ],
+          "correctIndex": 0
+        }
+      ]
+    }
+  ],
+  "isfinished": false
+}
