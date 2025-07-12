@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Plan Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <!-- Chatbot Toggle Button -->
+        <button class="chatbot-toggle" id="chatbotToggle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+        </button>
+
+        <!-- Main Content (Left Side) -->
+        <div class="main-content" id="mainContent">
+            <div class="logo-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <div class="logo-circle"></div>
+                        <div class="logo-path"></div>
+                        <div class="logo-dots">
+                            <div class="logo-dot dot-1"></div>
+                            <div class="logo-dot dot-2"></div>
+                            <div class="logo-dot dot-3"></div>
+                        </div>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-title">LearnFlow</span>
+                        <span class="logo-subtitle">AI Learning Plans</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="inputSection" class="input-section">
+                <input 
+                    type="text" 
+                    id="topicInput" 
+                    placeholder="Enter a topic to learn (e.g., React, n8n, Python...)"
+                    class="topic-input"
+                >
+                <button id="generateBtn" class="generate-btn">Generate Learning Plan</button>
+            </div>
+
+            <div id="learningHeader" class="learning-header" style="display: none;">
+                <div class="learning-header-content">
+                    <div class="learning-label">You are now learning</div>
+                    <div class="learning-topic" id="learningTopic"></div>
+                    <div class="learning-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="progress-text">Your learning journey begins here</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+                <div class="spinner"></div>
+                <p>Generating your learning plan...</p>
+            </div>
+
+            <div id="timelineContainer" class="timeline-container" style="display: none;">
+                <div id="timeline" class="timeline"></div>
+            </div>
+        </div>
+
+        <!-- Chatbot Panel (Right Side) -->
+        <div class="chatbot-panel" id="chatbotPanel">
+            <div class="chatbot-header">
+                <h3>Learning Assistant</h3>
+                <button class="chatbot-close" id="chatbotClose">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        <p>👋 Hi! I'm your learning assistant. I can help you with:</p>
+                        <ul>
+                            <li>Explaining concepts from your learning plan</li>
+                            <li>Providing additional resources</li>
+                            <li>Answering questions about your current stage</li>
+                            <li>Suggesting practice exercises</li>
+                        </ul>
+                        <p>What would you like to know?</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chatbot-input-container">
+                <input 
+                    type="text" 
+                    id="chatbotInput" 
+                    placeholder="Ask me anything about your learning journey..."
+                    class="chatbot-input"
+                >
+                <button id="chatbotSend" class="chatbot-send">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polyline points="22,2 15,22 11,13 2,9 22,2"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html> 
