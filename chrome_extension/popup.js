@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             keywords: ["agentic AI", "business automation", "AI fundamentals"],
             status: "ongoing",
             urls: [
+                "file:///C:/Users/szewa/Desktop/coding/Learnerator/mocks/stage1.html",
                 "https://beam.ai/agentic-insights/what-is-agentic-ai-the-2025-beginner-s-guide-for-entrepreneurs",
                 "https://www.capably.ai/resources/agentic-ai",
                 "https://www.mendix.com/blog/guide-to-agentic-ai/",
