@@ -15,7 +15,7 @@ from googleapiclient.errors import HttpError
 from langchain_together import Together
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
-from utils.schema import SearchConfig, ResourceSources, SearchResult, MOCK_SEARCH_RESULTS
+from utils.schema import SearchConfig, ResourceSources, SearchResult
 
 # Load environment variables
 load_dotenv()
@@ -368,14 +368,33 @@ class LearningResourceFinder:
     #         all(term not in url.lower() for term in excluded_terms)
     #     )
     
-    def find_learning_resources(self, topic: str, content: str, max_results: int = None) -> SearchResult:
+    def find_learning_resources(self, topic_data, max_results: int = None) -> SearchResult:
         
         if max_results is None:
             max_results = self.config.max_results
         
         try:
-            # Step 1: Parse learning content into specific topics
-            learning_content = self._parse_learning_content(content)
+            # Parse input - handle both legacy string format and new JSON format
+            if isinstance(topic_data, str):
+                # Legacy format: topic_data is just the content string
+                topic = "general learning"
+                learning_content = self._parse_learning_content(topic_data)
+            elif isinstance(topic_data, dict):
+                # New JSON format
+                topic = topic_data.get("header", "general learning")
+                details = topic_data.get("details", "")
+                keywords = topic_data.get("keywords", [])
+                
+                # Combine details and keywords for learning content
+                learning_content = []
+                if details:
+                    learning_content.append(details)
+                if keywords:
+                    learning_content.extend(keywords)
+            else:
+                raise ValueError("Invalid input format. Expected string or dict.")
+                
+            print(f"Learning topic: {topic}")
             print(f"Learning objectives: {learning_content}")
             
             # Step 2: Get recommended sources from LLM
@@ -442,7 +461,7 @@ class LearningResourceFinder:
 
 
 # Tool interface for agentic LLMs
-def find_learning_resources(topic: str, content: str, max_results: int = 5) -> Dict:
+def find_learning_resources(topic_data, max_results: int = 5) -> Dict:
     """
     Tool function for finding learning resources with specific learning objectives.
     
@@ -450,28 +469,42 @@ def find_learning_resources(topic: str, content: str, max_results: int = 5) -> D
     specific features or topics the user wants to learn.
     
     Args:
-        topic (str): The main topic to learn about (e.g., "javascript fundamentals", "Python pandas")
-        content (str): Specific learning objectives in format: "[item1, item2, item3]" or "item1, item2, item3"
-        max_results (int, optional): Maximum number of URLs to return. Defaults to 3.
+        topic_data: Can be either:
+            - Legacy format (str): Learning objectives as "[item1, item2, item3]" or "item1, item2, item3"
+            - New format (dict): JSON object with structure:
+                {
+                    "header": "Topic title",
+                    "details": "Description of what to learn",
+                    "keywords": ["keyword1", "keyword2", "keyword3"],
+                    "status": "pending"
+                }
+        max_results (int, optional): Maximum number of URLs to return. Defaults to 5.
     
     Returns:
         Dict: Contains 'urls' list, 'has_basics_tutorial' bool, 'has_youtube_demo' bool,
               'covered_topics' list, 'topic_coverage' dict, and optional 'error' string
     
-    Example:
+    Examples:
+        >>> # Legacy format
         >>> result = find_learning_resources(
-        ...     topic="javascript fundamentals",
-        ...     content="[es6+ features, async/await, promises, arrow functions, destructuring]",
+        ...     "[es6+ features, async/await, promises, arrow functions]",
         ...     max_results=5
         ... )
-        >>> print(result['covered_topics'])
-        ['es6+ features', 'async/await', 'promises']
-        >>> print(result['topic_coverage'])
-        {'es6+ features': ['https://...'], 'async/await': ['https://...']}
+        
+        >>> # New JSON format
+        >>> result = find_learning_resources(
+        ...     {
+        ...         "header": "Introduction to Machine Learning",
+        ...         "details": "Learn the basic concepts and types of machine learning algorithms",
+        ...         "keywords": ["machine learning basics", "ML algorithms", "supervised learning"],
+        ...         "status": "pending"
+        ...     },
+        ...     max_results=5
+        ... )
     """
     try:
         finder = LearningResourceFinder()
-        result = finder.find_learning_resources(topic, content, max_results)
+        result = finder.find_learning_resources(topic_data, max_results)
         
         return {
             'urls': result.urls,
@@ -493,10 +526,19 @@ def find_learning_resources(topic: str, content: str, max_results: int = 5) -> D
         }
         
 if __name__ == "__main__":
-    # Example usage
-    topic = "javascript fundamentals"
-    content = "[es6+ features, async/await, promises, arrow functions, destructuring]"
+    # Example usage with new JSON format
+    topic_data = {
+        "header": "Introduction to Machine Learning",
+        "details": "Learn the basic concepts and types of machine learning algorithms",
+        "keywords": ["machine learning basics", "ML algorithms", "supervised learning"],
+        "status": "pending"
+    }
     max_results = 5
     
-    result = find_learning_resources(topic, content, max_results)
+    result = find_learning_resources(topic_data, max_results)
     print(json.dumps(result, indent=2))
+    
+    # Example with legacy format (still supported)
+    # legacy_content = "[es6+ features, async/await, promises, arrow functions, destructuring]"
+    # result = find_learning_resources(legacy_content, max_results)
+    # print(json.dumps(result, indent=2))

@@ -36,22 +36,31 @@ class ContentSummary:
     title: str
     content_type: str
     key_topics: List[str]
-    key_concepts: Dict[str, str]  # concept -> definition
+    key_concepts: List[str]  # List of key concepts
     practical_examples: List[str]  # Real examples and code snippets
     implementation_summary: str  # How it's used in practice
     common_patterns: List[str]  # Best practices and patterns
     chunk_count: int
+    topic_category: str = "general"  # Add topic category
+
+
+@dataclass 
+class ConceptRelationship:
+    """Relationship between two concepts."""
+    concept_a: str
+    concept_b: str
+    relationship_type: str  # 'prerequisite', 'builds_on', 'related_to', 'applies_to', 'extends'
+    description: str  # How they are connected
+    strength: float  # 0.0 to 1.0
 
 
 @dataclass
 class KnowledgeMap:
-    """Relationship between knowledge concepts."""
-    source_concept: str
-    target_concept: str
-    relationship_type: str  # 'prerequisite', 'builds_on', 'related_to', 'applies_to', 'extends'
-    connection_description: str  # How they are connected
-    strength: float  # 0.0 to 1.0
-    source_urls: List[str]
+    """Collection of concept relationships."""
+@dataclass
+class KnowledgeMap:
+    """Collection of concept relationships."""
+    relationships: List[ConceptRelationship]
 
 
 # Quiz Schema
@@ -82,7 +91,7 @@ class DatabaseSummary:
     """Complete summary of the vector database content."""
     total_sources: int
     content_summaries: List[ContentSummary]
-    knowledge_map: List[KnowledgeMap]
+    knowledge_map: KnowledgeMap
     topic_clusters: Dict[str, List[str]]
     learning_paths: List[List[str]]
     quiz: Optional[Quiz]  # Optional quiz for testing knowledge
@@ -147,11 +156,9 @@ MOCK_CONTENT_SUMMARIES = [
         title="Python Tutorial - Official Documentation",
         content_type="documentation",
         key_topics=["python", "programming", "tutorial"],
-        key_concepts={
-            "variables": "Named containers that store data values",
-            "functions": "Reusable blocks of code that perform specific tasks",
-            "loops": "Structures that repeat code execution based on conditions"
-        },
+        key_concepts=[
+            "variables", "functions", "loops", "data types", "control flow"
+        ],
         practical_examples=[
             "Creating variables: name = 'John', age = 25",
             "Writing functions: def greet(name): return f'Hello {name}'",
@@ -163,18 +170,17 @@ MOCK_CONTENT_SUMMARIES = [
             "Follow PEP 8 style guidelines",
             "Write docstrings for functions"
         ],
-        chunk_count=15
+        chunk_count=15,
+        topic_category="python"
     ),
     ContentSummary(
         source_url="https://realpython.com/python-basics/",
         title="Python Basics: A Practical Introduction",
         content_type="tutorial",
         key_topics=["python", "basics", "programming"],
-        key_concepts={
-            "data types": "Different kinds of data like strings, integers, lists",
-            "control flow": "Directing program execution with if/else and loops",
-            "error handling": "Managing exceptions and errors gracefully"
-        },
+        key_concepts=[
+            "data types", "control flow", "error handling", "functions", "modules"
+        ],
         practical_examples=[
             "Data types: name = 'Alice', numbers = [1, 2, 3], score = 85.5",
             "Control flow: if score > 80: print('Good job!')",
@@ -186,6 +192,7 @@ MOCK_CONTENT_SUMMARIES = [
             "Handle errors explicitly",
             "Keep functions small and focused"
         ],
-        chunk_count=12
+        chunk_count=12,
+        topic_category="python"
     )
 ]

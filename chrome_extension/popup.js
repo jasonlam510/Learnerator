@@ -17,278 +17,88 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatbotInput = document.getElementById('chatbotInput');
     const chatbotSend = document.getElementById('chatbotSend');
 
+
     // Current learning plan data
     let currentLearningPlan = [];
     let currentTopic = '';
-
-    // Cache management functions
-    async function saveToCache(topic, learningPlan) {
-        try {
-            const cacheData = {
-                topic: topic,
-                learningPlan: learningPlan,
-                timestamp: Date.now()
-            };
-            
-            await chrome.storage.local.set({
-                'learnflow_cache': cacheData
-            });
-            
-            console.log('✅ Learning plan cached successfully');
-        } catch (error) {
-            console.error('❌ Error caching learning plan:', error);
+    
+    // Mock learning plan data from mocks folder
+    const mockLearningPlan = [
+        {
+            header: "1. Foundations of Agentic AI in Business",
+            details: "Understand what Agentic AI is, why it matters for business automation, and identify key beginner concepts and terminology.",
+            keywords: ["agentic AI", "business automation", "AI fundamentals"],
+            status: "ongoing",
+            urls: [
+                "https://beam.ai/agentic-insights/what-is-agentic-ai-the-2025-beginner-s-guide-for-entrepreneurs",
+                "https://www.capably.ai/resources/agentic-ai",
+                "https://www.mendix.com/blog/guide-to-agentic-ai/",
+                "https://www.chaione.com/blog/agentic-ai-a-beginners-guide"
+            ]
+        },
+        {
+            header: "2. Beginner Tools for Agentic AI and Automation",
+            details: "Get hands-on with beginner-friendly tools for Agentic AI, including low-code platforms, Microsoft Copilot, and simple Python frameworks.",
+            keywords: ["AI tools", "low-code platforms", "Python frameworks"],
+            status: "pending",
+            urls: [
+                "https://www.youtube.com/watch?v=g5pY1Tb_r4g",
+                "https://www.youtube.com/watch?v=d-CuF6dlqLg",
+                "https://www.youtube.com/watch?v=vF2Z4T97xcQ",
+                "https://www.getpassionfruit.com/blog/how-to-build-your-first-ai-workflow-with-n8n-beginners-guide",
+                "https://www.udemy.com/course/ai-agents-ai-automation-the-practical-agentic-ai-guide/"
+            ]
+        },
+        {
+            header: "3. Real-World Business Use Cases and Case Studies",
+            details: "Discover how businesses are applying Agentic AI for customer service, support, and workflow optimization. Learn from practical examples and measurable outcomes.",
+            keywords: ["use cases", "case studies", "customer service"],
+            status: "pending",
+            urls: [
+                "https://www.vktr.com/ai-disruption/5-ai-case-studies-in-customer-service-and-support/",
+                "https://www.japeto.ai/chatbots-in-industry-customer-service-case-studies/",
+                "https://www.creolestudios.com/real-world-ai-agent-case-studies/",
+                "https://www.chaione.com/blog/agentic-ai-a-beginners-guide"
+            ]
+        },
+        {
+            header: "4. Building Your First Agentic AI Workflows",
+            details: "Apply your knowledge by building simple Agentic AI workflows using beginner-friendly tools and frameworks. Learn basic Python automation and explore agent frameworks like LangChain.",
+            keywords: ["workflows", "LangChain", "Python automation"],
+            status: "pending",
+            urls: [
+                "https://www.youtube.com/watch?v=8BV9TW490nQ",
+                "https://www.singlestore.com/blog/beginners-guide-to-langchain/",
+                "https://python.langchain.com/docs/tutorials/",
+                "https://www.youtube.com/watch?v=w0H1-b044KY",
+                "https://flowster.app/workflow-automation-for-beginners-secrets-to-success/",
+                "https://www.blinkops.com/blog/ai-workflow-automation"
+            ]
         }
-    }
+    ];
+    
 
-    async function loadFromCache() {
-        try {
-            const result = await chrome.storage.local.get(['learnflow_cache']);
-            
-            if (result.learnflow_cache) {
-                const cacheData = result.learnflow_cache;
-                const cacheAge = Date.now() - cacheData.timestamp;
-                const maxAge = 24 * 60 * 60 * 1000; // 24 hours
-                
-                // Check if cache is still valid (less than 24 hours old)
-                if (cacheAge < maxAge) {
-                    console.log('✅ Loading learning plan from cache');
-                    return {
-                        topic: cacheData.topic,
-                        learningPlan: cacheData.learningPlan
-                    };
-                } else {
-                    console.log('🔄 Cache expired, clearing old data');
-                    await clearCache();
-                }
-            }
-            
-            return null;
-        } catch (error) {
-            console.error('❌ Error loading from cache:', error);
-            return null;
-        }
-    }
-
-    async function clearCache() {
-        try {
-            await chrome.storage.local.remove(['learnflow_cache']);
-            console.log('✅ Cache cleared successfully');
-        } catch (error) {
-            console.error('❌ Error clearing cache:', error);
-        }
-    }
-
-    // Function to restore UI state from cached data
-    function restoreUIState(topic, learningPlan) {
-        currentTopic = topic;
-        currentLearningPlan = learningPlan;
-        
-        // Show learning header
-        showLearningHeader(topic);
-        
-        // Render the timeline
-        renderTimeline(learningPlan);
-        
-        // Show timeline
-        timelineContainer.style.display = 'block';
-        
-        // Add "New Plan" button to allow creating a new learning plan
-        addNewPlanButton();
-        
-        // Add welcome message to chatbot
-        const welcomeMessage = `
-            <p>👋 Welcome back! You were learning <strong>${topic}</strong>.</p>
-            <p>Your learning plan has been restored. You can:</p>
-            <ul>
-                <li>Continue where you left off</li>
-                <li>Ask me about specific stages</li>
-                <li>Click on any stage to open learning resources</li>
-            </ul>
-            <p>How can I help you today?</p>
-        `;
-        addMessage(welcomeMessage);
-    }
-
-    // Function to add "New Plan" button when showing cached data
-    function addNewPlanButton() {
-        // Check if button already exists
-        if (document.getElementById('newPlanBtn')) {
-            return;
-        }
-        
-        const newPlanBtn = document.createElement('button');
-        newPlanBtn.id = 'newPlanBtn';
-        newPlanBtn.textContent = '+ New Learning Plan';
-        newPlanBtn.className = 'new-plan-btn';
-        newPlanBtn.style.cssText = `
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            color: #667eea;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-            transition: all 0.2s ease;
-        `;
-        
-        newPlanBtn.addEventListener('click', async function() {
-            // Clear cache and reset UI
-            await clearCache();
-            
-            // Reset variables
-            currentLearningPlan = [];
-            currentTopic = '';
-            
-            // Show input section and hide learning header
-            inputSection.classList.remove('hidden');
-            document.querySelector('.logo-header').classList.remove('hidden');
-            learningHeader.style.display = 'none';
-            timelineContainer.style.display = 'none';
-            
-            // Remove the new plan button
-            newPlanBtn.remove();
-            
-            // Focus on input
-            topicInput.focus();
-            
-            // Clear input
-            topicInput.value = '';
-            
-            // Clear chatbot messages
-            chatbotMessages.innerHTML = '';
-        });
-        
-        // Add hover effect
-        newPlanBtn.addEventListener('mouseenter', function() {
-            this.style.background = 'rgba(102, 126, 234, 0.2)';
-            this.style.borderColor = 'rgba(102, 126, 234, 0.5)';
-        });
-        
-        newPlanBtn.addEventListener('mouseleave', function() {
-            this.style.background = 'rgba(102, 126, 234, 0.1)';
-            this.style.borderColor = 'rgba(102, 126, 234, 0.3)';
-        });
-        
-        // Insert button after learning header
-        learningHeader.appendChild(newPlanBtn);
-    }
-
-    // Initialize popup - check for cached data
+    // Initialize popup
     async function initializePopup() {
         console.log('🔍 Initializing popup...');
-        
-        const cachedData = await loadFromCache();
-        
-        if (cachedData) {
-            console.log('🔄 Restoring from cache:', cachedData.topic);
-            restoreUIState(cachedData.topic, cachedData.learningPlan);
-        } else {
-            console.log('📝 No cached data found, showing input form');
-            // Focus on input when popup opens (only if no cached data)
-            topicInput.focus();
-        }
+        console.log('📝 No cached data, showing input form');
+        // Focus on input when popup opens
+        topicInput.focus();
     }
 
     // Call initialize function
     initializePopup();
 
-    // Mock URLs for different topics and stages
-    const mockUrls = {
-        'react': {
-            'fundamentals': [
-                'https://react.dev/learn',
-                'https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Client-side_JavaScript_frameworks/React_getting_started',
-                'https://www.freecodecamp.org/learn/front-end-development-libraries/react/',
-                'https://reactjs.org/tutorial/tutorial.html'
-            ],
-            'components': [
-                'https://react.dev/learn/your-first-component',
-                'https://react.dev/learn/passing-props-to-a-component',
-                'https://react.dev/learn/conditional-rendering',
-                'https://beta.reactjs.org/learn/rendering-lists'
-            ],
-            'state': [
-                'https://react.dev/learn/state-a-components-memory',
-                'https://react.dev/learn/render-and-commit',
-                'https://react.dev/reference/react/useState',
-                'https://react.dev/reference/react/useEffect'
-            ],
-            'hooks': [
-                'https://react.dev/reference/react/hooks',
-                'https://react.dev/learn/reusing-logic-with-custom-hooks',
-                'https://usehooks.com/',
-                'https://github.com/streamich/react-use'
-            ],
-            'routing': [
-                'https://reactrouter.com/en/main/start/tutorial',
-                'https://github.com/remix-run/react-router',
-                'https://reactrouter.com/en/main/route/route',
-                'https://reactrouter.com/en/main/hooks/use-navigate'
-            ],
-            'api': [
-                'https://react.dev/learn/synchronizing-with-effects',
-                'https://tanstack.com/query/latest',
-                'https://swr.vercel.app/',
-                'https://axios-http.com/docs/intro'
-            ],
-            'testing': [
-                'https://testing-library.com/docs/react-testing-library/intro/',
-                'https://jestjs.io/docs/tutorial-react',
-                'https://github.com/testing-library/react-testing-library',
-                'https://kentcdodds.com/blog/common-mistakes-with-react-testing-library'
-            ]
-        },
-        'javascript': {
-            'fundamentals': [
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide',
-                'https://javascript.info/',
-                'https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/',
-                'https://eloquentjavascript.net/'
-            ],
-            'es6': [
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let',
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions',
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment',
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import'
-            ],
-            'async': [
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise',
-                'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function',
-                'https://javascript.info/async-await',
-                'https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API'
-            ]
-        },
-        'python': {
-            'fundamentals': [
-                'https://docs.python.org/3/tutorial/',
-                'https://www.python.org/about/gettingstarted/',
-                'https://www.freecodecamp.org/learn/scientific-computing-with-python/',
-                'https://realpython.com/python-basics/'
-            ],
-            'data-structures': [
-                'https://docs.python.org/3/tutorial/datastructures.html',
-                'https://realpython.com/python-data-structures/',
-                'https://www.geeksforgeeks.org/python-data-structures/',
-                'https://docs.python.org/3/library/collections.html'
-            ],
-            'web': [
-                'https://flask.palletsprojects.com/en/2.3.x/quickstart/',
-                'https://docs.djangoproject.com/en/4.2/intro/tutorial01/',
-                'https://fastapi.tiangolo.com/tutorial/',
-                'https://realpython.com/python-web-applications/'
-            ]
-        },
-        'default': [
-            'https://developer.mozilla.org/en-US/',
-            'https://stackoverflow.com/',
-            'https://github.com/',
-            'https://www.freecodecamp.org/'
-        ]
-    };
-
     // Function to get relevant URLs for a stage
-    function getStageUrls(topic, stageHeader, keywords) {
+    function getStageUrls(topic, stageHeader, keywords, stageData = null) {
+        // First check if we have URLs from the backend API
+        if (stageData && stageData.urls && stageData.urls.length > 0) {
+            console.log(`🔍 Using backend API URLs for ${stageHeader}:`, stageData.urls);
+            return stageData.urls;
+        }
+        
+        console.log(`🔍 Falling back to mock URLs for ${stageHeader}`);
+        
         const topicLower = topic.toLowerCase();
         const headerLower = stageHeader.toLowerCase();
         
@@ -327,8 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             console.log('🔍 Opening resources for stage:', stage.header);
             
-            // Get URLs for this stage
-            const urls = getStageUrls(currentTopic, stage.header, stage.keywords || []);
+            // Get URLs for this stage (now with backend API support)
+            const urls = getStageUrls(currentTopic, stage.header, stage.keywords || [], stage);
             
             // Create group name
             const groupName = `${currentTopic} - ${stage.header}`;
@@ -347,9 +157,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     // Show success message in chatbot if it's open
                     if (mainContainer.classList.contains('expanded')) {
+                        const urlSource = stage.urls && stage.urls.length > 0 ? 'backend API' : 'curated collection';
                         const successMessage = `
                             <p>🚀 <strong>Opened learning resources for "${stage.header}"</strong></p>
-                            <p>Created tab group with ${urls.length} helpful resources:</p>
+                            <p>Created tab group with ${urls.length} helpful resources from ${urlSource}:</p>
                             <ul>
                                 ${urls.map(url => {
                                     const domain = new URL(url).hostname;
@@ -635,12 +446,85 @@ document.addEventListener('DOMContentLoaded', function() {
         chatbotMessages.appendChild(typingDiv);
         chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
         
-        // Generate and add bot response after a delay
-        setTimeout(() => {
+        // Call backend chatbot API
+        callChatbotAPI(message).then(response => {
+            // Remove typing indicator
             typingDiv.remove();
-            const response = generateBotResponse(message);
-            addMessage(response);
-        }, 1000);
+            
+            if (response && response.answer) {
+                // Display the API response
+                addMessage(response.answer);
+                
+                // If there are sources, show them too
+                if (response.sources && response.sources.length > 0) {
+                    const sourcesMessage = `
+                        <p><strong>📚 Sources:</strong></p>
+                        <ul>
+                            ${response.sources.map(source => `<li><a href="${source}" target="_blank">${source}</a></li>`).join('')}
+                        </ul>
+                    `;
+                    addMessage(sourcesMessage);
+                }
+            } else {
+                // Fallback to local response if API fails
+                const fallbackResponse = generateBotResponse(message);
+                addMessage(fallbackResponse);
+            }
+        }).catch(error => {
+            // Remove typing indicator
+            typingDiv.remove();
+            
+            console.error('❌ Chatbot API error:', error);
+            
+            // Show error message and fallback to local response
+            const errorMessage = `
+                <p>⚠️ <em>Backend chatbot temporarily unavailable. Using local responses.</em></p>
+            `;
+            addMessage(errorMessage);
+            
+            // Fallback to local response
+            const fallbackResponse = generateBotResponse(message);
+            addMessage(fallbackResponse);
+        });
+    }
+
+    // Function to call backend chatbot API
+    async function callChatbotAPI(question) {
+        return new Promise((resolve, reject) => {
+            // Create request data for the chatbot API
+            const requestData = {
+                question: question,
+                session_id: currentTopic || 'default' // Use current topic as session ID
+            };
+            
+            console.log('🤖 Calling backend chatbot API with question:', question);
+            
+            // Call the backend chatbot API using background script
+            chrome.runtime.sendMessage({
+                action: "xhttp",
+                method: "POST",
+                url: "http://localhost:7000/api/chat",
+                data: JSON.stringify(requestData),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }, function(response) {
+                if (response && response.success && response.status === 200) {
+                    const chatData = response.data;
+                    console.log('✅ Chatbot API response received:', chatData);
+                    
+                    resolve({
+                        answer: chatData.answer || 'Sorry, I could not generate a response.',
+                        sources: chatData.sources || [],
+                        session_id: chatData.session_id || 'default',
+                        error: chatData.error || null
+                    });
+                } else {
+                    console.warn('⚠️ Chatbot API failed:', response?.error);
+                    reject(new Error(response?.error || 'Failed to get chatbot response'));
+                }
+            });
+        });
     }
 
     // Event listeners for chatbot
@@ -791,32 +675,68 @@ document.addEventListener('DOMContentLoaded', function() {
         //         return existingPlan;
         //     }
         // }
+    
+
+        // const learningPlan = await callOllamaAPI(topic);
+
+
+        // Fallback to mock data
+        console.log('Using mock data for topic:', topic);
+        const learningPlan = mockLearningPlan;
         
-        // Check if Ollama API is available
-        const ollamaAvailable = await checkOllamaAPI();
+        // Call backend API to get URLs for each stage
+        console.log('🔍 Calling backend API to find learning resources...');
         
-        if (ollamaAvailable) {
-            try {
-                console.log('🎯 Using Ollama API to generate learning plan');
-                const learningPlan = await callOllamaAPI(topic);
+        for (let i = 0; i < learningPlan.length; i++) {
+            const stage = learningPlan[i];
+            
+            // Create request data for the backend API
+            const requestData = {
+                header: stage.header,
+                details: stage.details,
+                keywords: stage.keywords || [],
+                status: stage.status
+            };
+            
+            console.log(`🔍 Finding resources for stage ${i + 1}: ${stage.header}`);
+            
+            // Call the backend API using background script
+            console.log('🔍 Sending request to backend API:', requestData);
+            const urlResponse = await new Promise((resolve) => {
+                chrome.runtime.sendMessage({
+                    action: "xhttp",
+                    method: "POST",
+                    url: "http://localhost:7000/api/find-resources",
+                    data: JSON.stringify(requestData),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }, function(response) {
+                    resolve(response);
+                });
+            });
+            
+            if (urlResponse && urlResponse.success && urlResponse.status === 200) {
+                const urlData = urlResponse.data;
+                console.log(`✅ Found ${urlData.urls?.length || 0} URLs for ${stage.header}`);
                 
-                // // Save to backend if available
-                // if (backendAvailable) {
-                //     await saveLearningPlanToBackend(topic, learningPlan);
-                // }
-                
-                return learningPlan;
-            } catch (error) {
-                console.error('Failed to call Ollama API, falling back to dummy data:', error);
-                // Fall back to dummy data if Ollama API fails
+                // Add URLs to the stage
+                learningPlan[i].urls = urlData.urls || [];
+                learningPlan[i].covered_topics = urlData.covered_topics || [];
+                learningPlan[i].has_basics_tutorial = urlData.has_basics_tutorial || false;
+                learningPlan[i].has_youtube_demo = urlData.has_youtube_demo || false;
+            } else {
+                console.warn(`⚠️ Failed to get URLs for ${stage.header}:`, urlResponse?.error);
+                // Keep the stage without URLs
+                learningPlan[i].urls = [];
             }
-        } else {
-            console.log('Ollama API not available, using dummy data');
+            
+            // Add a small delay to avoid overwhelming the API
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
         
-        // Fallback to dummy data
-        console.log('Using dummy data for topic:', topic);
-        const learningPlan = dummyLearningPlan;
+        console.log('✅ Finished fetching URLs from backend API');
+        
         
         // // Save to backend if available
         // if (backendAvailable) {
@@ -927,9 +847,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Store current learning plan and topic for chatbot
             currentLearningPlan = learningPlan;
             currentTopic = topic;
-            
-            // Save to cache
-            await saveToCache(topic, learningPlan);
 
             // Hide loading and show learning header
             loadingSpinner.style.display = 'none';

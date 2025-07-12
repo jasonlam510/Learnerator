@@ -20,7 +20,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langchain_together import Together
 from langchain_core.prompts import PromptTemplate
 from utils.schema import (
-    ContentSummary, KnowledgeMap, QuizQuestion, Quiz, 
+    ContentSummary, KnowledgeMap, ConceptRelationship, QuizQuestion, Quiz, 
     DatabaseSummary, MOCK_CONTENT_SUMMARIES
 )
 
@@ -344,7 +344,7 @@ class ContentAnalyzer:
         
         return summary
     
-    def analyze_knowledge_relationships(self, summaries: List[ContentSummary]) -> List[KnowledgeMap]:
+    def analyze_knowledge_relationships(self, summaries: List[ContentSummary]) -> KnowledgeMap:
         """Analyze relationships between knowledge concepts across sources."""
         
         relationships = []
@@ -369,16 +369,15 @@ class ContentAnalyzer:
                     
                     if strength > 0.3:  # Only include strong relationships
                         relationship_type, connection_desc = self._determine_relationship_type_and_description(concept1, concept2)
-                        relationships.append(KnowledgeMap(
-                            source_concept=concept1,
-                            target_concept=concept2,
+                        relationships.append(ConceptRelationship(
+                            concept_a=concept1,
+                            concept_b=concept2,
                             relationship_type=relationship_type,
-                            connection_description=connection_desc,
-                            strength=strength,
-                            source_urls=list(common_sources)
+                            description=connection_desc,
+                            strength=strength
                         ))
         
-        return relationships
+        return KnowledgeMap(relationships=relationships)
     
     def _determine_relationship_type_and_description(self, concept1: str, concept2: str) -> Tuple[str, str]:
         """Determine the type of relationship and description between concepts."""
@@ -527,19 +526,26 @@ class ContentAnalyzer:
             )
             response = self.llm.invoke(prompt)
             
-            # Extract JSON from response
-            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', str(response))
+            # Clean the response to remove control characters
+            cleaned_response = ''.join(char for char in str(response) if ord(char) >= 32 or char in '\n\r\t')
+            
+            # Extract JSON from cleaned response
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', cleaned_response)
             if json_match:
-                question_data = json.loads(json_match.group())
-                
-                return QuizQuestion(
-                    question=question_data.get('question', ''),
-                    options=question_data.get('options', []),
-                    correct_answer=question_data.get('correct_answer', 0),
-                    explanation=question_data.get('explanation', ''),
-                    concept=concept,
-                    source_url=summary.source_url
-                )
+                try:
+                    question_data = json.loads(json_match.group())
+                    
+                    return QuizQuestion(
+                        question=question_data.get('question', ''),
+                        options=question_data.get('options', []),
+                        correct_answer=question_data.get('correct_answer', 0),
+                        explanation=question_data.get('explanation', ''),
+                        concept=concept,
+                        source_url=summary.source_url
+                    )
+                except json.JSONDecodeError as je:
+                    print(f"JSON parsing error for {concept}: {je}")
+                    print(f"Problematic JSON: {json_match.group()[:200]}...")
         
         except Exception as e:
             print(f"Error generating question for {concept}: {e}")
