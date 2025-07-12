@@ -62,27 +62,28 @@ function renderQuiz(quizData, taskName = "Learning Quiz") {
     `;
 
     container.innerHTML = quizHTML;
-
-    // Add global functions
-    window.handleAnswer = function(questionIndex, selectedIndex, correctIndex) {
-        const feedback = document.getElementById(`feedback_${questionIndex}`);
-        const isCorrect = selectedIndex === correctIndex;
-        
-        // Update feedback
-        feedback.textContent = isCorrect ? '✅ Correct!' : '❌ Incorrect!';
-        feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
-        feedback.style.display = 'block';
-
-        // Update score
-        updateScore();
-    };
-
-    window.updateScore = function() {
-        const correctInputs = document.querySelectorAll('input[data-correct="true"]:checked');
-        const score = correctInputs.length;
-        document.getElementById('scoreText').textContent = `${score}/${totalQuestions}`;
-    };
 }
+
+// Global functions for quiz interaction
+window.handleAnswer = function(questionIndex, selectedIndex, correctIndex) {
+    const feedback = document.getElementById(`feedback_${questionIndex}`);
+    const isCorrect = selectedIndex === correctIndex;
+    
+    // Update feedback
+    feedback.textContent = isCorrect ? '✅ Correct!' : '❌ Incorrect!';
+    feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    feedback.style.display = 'block';
+
+    // Update score
+    updateScore();
+};
+
+window.updateScore = function() {
+    const correctInputs = document.querySelectorAll('input[data-correct="true"]:checked');
+    const score = correctInputs.length;
+    const totalQuestions = document.querySelectorAll('.question').length;
+    document.getElementById('scoreText').textContent = `${score}/${totalQuestions}`;
+};
 
 // Hardcoded quiz data from "Foundations of Agentic AI in Business"
 const hardcodedQuizData = [
