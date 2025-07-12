@@ -103,8 +103,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const headerLower = stageHeader.toLowerCase();
         
         // Check if we have specific URLs for this topic
-        if (mockUrls[topicLower]) {
-            const topicUrls = mockUrls[topicLower];
+        return mockLearningPlan[0].urls ? mockLearningPlan[0].urls : [];
+        if (mockLearningPlan[0].urls) {
+            const topicUrls = mockLearningPlan[0].urls;
             
             // Try to match based on keywords first
             for (const keyword of keywords) {
@@ -129,7 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Fallback to default URLs
-        return mockUrls.default;
+        return mockLearningPlan[0].urls;
     }
 
     // Function to open tabs for a stage
@@ -719,12 +720,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if (urlResponse && urlResponse.success && urlResponse.status === 200) {
                 const urlData = urlResponse.data;
                 console.log(`✅ Found ${urlData.urls?.length || 0} URLs for ${stage.header}`);
+
                 
                 // Add URLs to the stage
-                learningPlan[i].urls = urlData.urls || [];
-                learningPlan[i].covered_topics = urlData.covered_topics || [];
-                learningPlan[i].has_basics_tutorial = urlData.has_basics_tutorial || false;
-                learningPlan[i].has_youtube_demo = urlData.has_youtube_demo || false;
+                // learningPlan[i].urls = urlData.urls || [];
+                // learningPlan[i].covered_topics = urlData.covered_topics || [];
+                // learningPlan[i].has_basics_tutorial = urlData.has_basics_tutorial || false;
+                // learningPlan[i].has_youtube_demo = urlData.has_youtube_demo || false;
+
             } else {
                 console.warn(`⚠️ Failed to get URLs for ${stage.header}:`, urlResponse?.error);
                 // Keep the stage without URLs
@@ -773,6 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
         timeline.innerHTML = '';
 
         learningPlan.forEach((stage, index) => {
+            console.log(`🔍 Rendering stage ${index + 1}:`, stage);
             const timelineItem = document.createElement('div');
             timelineItem.className = `timeline-item ${stage.status}`;
 

@@ -1,3 +1,5 @@
+importScripts("./tabGroupModule.js");
+
 /**
  * Background script for LearnFlow Chrome Extension
  * Handles cross-origin API requests to Ollama FastAPI server
@@ -93,14 +95,17 @@ class TabGroupManager {
             for (let i = 0; i < urls.length; i++) {
                 console.log(`🔍 TabGroupManager: Creating tab ${i + 1}/${urls.length}: ${urls[i]}`);
                 
-                const tab = await chrome.tabs.create({
-                    url: urls[i],
-                    active: false, // Don't activate each tab as it's created
-                    windowId: currentWindow.id // Ensure tabs are created in current window
-                });
-                
-                console.log(`🔍 TabGroupManager: Created tab ${tab.id} for ${urls[i]}`);
-                tabIds.push(tab.id);
+                setTimeout(async () => {
+                    // Create the tab without activating it immediately
+                    const tab = await chrome.tabs.create({
+                        url: urls[i],
+                        active: false, // Don't activate each tab as it's created
+                        windowId: currentWindow.id // Ensure tabs are created in current window
+                    });
+                    
+                    console.log(`🔍 TabGroupManager: Created tab ${tab.id} for ${urls[i]}`);
+                    tabIds.push(tab.id);
+                }, 1000 * i); // Stagger tab creation by 100ms to avoid overwhelming the browser
             }
             
             console.log('🔍 TabGroupManager: All tabs created', tabIds);
