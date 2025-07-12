@@ -7,54 +7,26 @@ with knowledge relationships for frontend display.
 
 import json
 import re
+import os
+import sys
 from typing import Dict, List, Optional, Tuple, Set
-from dataclasses import dataclass
 from collections import defaultdict, Counter
 import numpy as np
-from vector_database import create_learning_vector_db
+from dotenv import load_dotenv
+
+# Add the parent directory to the path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from rag_module.vector_database import create_learning_vector_db
 from langchain_together import Together
 from langchain_core.prompts import PromptTemplate
-import os
-from dotenv import load_dotenv
+from utils.schema import (
+    ContentSummary, KnowledgeRelationship, QuizQuestion, Quiz, 
+    DatabaseSummary, MOCK_CONTENT_SUMMARIES
+)
 
 # Load environment variables
 load_dotenv()
-
-
-@dataclass
-class ContentSummary:
-    """Summary of content from a single source."""
-    source_url: str
-    title: str
-    content_type: str
-    key_topics: List[str]
-    main_concepts: List[str]
-    learning_objectives: List[str]
-    difficulty_level: str
-    estimated_time: str
-    summary: str
-    chunk_count: int
-
-
-@dataclass
-class KnowledgeRelationship:
-    """Relationship between knowledge concepts."""
-    source_concept: str
-    target_concept: str
-    relationship_type: str  # 'prerequisite', 'builds_on', 'related_to', 'applies_to'
-    strength: float  # 0.0 to 1.0
-    source_urls: List[str]
-
-
-@dataclass
-class DatabaseSummary:
-    """Complete summary of the vector database content."""
-    total_sources: int
-    content_summaries: List[ContentSummary]
-    knowledge_map: List[KnowledgeRelationship]
-    topic_clusters: Dict[str, List[str]]
-    learning_paths: List[List[str]]
-    generated_at: str
 
 
 class ContentAnalyzer:
@@ -123,26 +95,25 @@ class ContentAnalyzer:
         # Use LLM for advanced analysis if available
         if self.llm:
             llm_analysis = self._llm_analyze_content(full_content, title)
-            learning_objectives = llm_analysis.get('learning_objectives', [])
-            difficulty_level = llm_analysis.get('difficulty_level', 'Intermediate')
-            estimated_time = llm_analysis.get('estimated_time', '30-60 minutes')
-            summary = llm_analysis.get('summary', self._generate_basic_summary(full_content))
+            practical_examples = llm_analysis.get('practical_examples', [])
+            key_concepts = llm_analysis.get('key_concepts', {})
+            implementation_summary = llm_analysis.get('implementation_summary', self._generate_basic_summary(full_content))
+            common_patterns = llm_analysis.get('common_patterns', [])
         else:
-            learning_objectives = self._extract_learning_objectives(full_content)
-            difficulty_level = self._estimate_difficulty(full_content)
-            estimated_time = self._estimate_time(full_content)
-            summary = self._generate_basic_summary(full_content)
+            practical_examples = self._extract_practical_examples(full_content)
+            key_concepts = self._extract_key_concepts_with_definitions(full_content)
+            implementation_summary = self._generate_basic_summary(full_content)
+            common_patterns = self._extract_common_patterns(full_content)
         
         return ContentSummary(
             source_url=url,
             title=title,
             content_type=content_type,
             key_topics=key_topics,
-            main_concepts=main_concepts,
-            learning_objectives=learning_objectives,
-            difficulty_level=difficulty_level,
-            estimated_time=estimated_time,
-            summary=summary,
+            key_concepts=key_concepts,
+            practical_examples=practical_examples,
+            implementation_summary=implementation_summary,
+            common_patterns=common_patterns,
             chunk_count=len(chunks)
         )
     
@@ -157,17 +128,17 @@ class ContentAnalyzer:
             Content: {content}
             
             Please provide a JSON response with:
-            1. learning_objectives: 3-5 specific learning objectives
-            2. difficulty_level: Beginner, Intermediate, or Advanced
-            3. estimated_time: How long to complete (e.g., "30-45 minutes")
-            4. summary: 2-3 sentence summary of what this content teaches
+            1. practical_examples: 3-5 real code examples or use cases from this content
+            2. key_concepts: Main concepts/knowledge explained with brief definitions
+            3. implementation_summary: How this knowledge is actually used in practice
+            4. common_patterns: Common patterns or best practices mentioned
             
             Format as valid JSON:
             {{
-                "learning_objectives": ["objective1", "objective2", "objective3"],
-                "difficulty_level": "Intermediate",
-                "estimated_time": "45 minutes",
-                "summary": "Brief summary of the content..."
+                "practical_examples": ["example1: code snippet or use case", "example2: ...", "example3: ..."],
+                "key_concepts": {{"concept1": "definition1", "concept2": "definition2"}},
+                "implementation_summary": "How this knowledge is actually applied in real projects...",
+                "common_patterns": ["pattern1", "pattern2", "pattern3"]
             }}
             """
         )
@@ -217,6 +188,75 @@ class ContentAnalyzer:
         found_topics.sort(key=lambda x: x[1], reverse=True)
         return [topic[0] for topic in found_topics[:5]]
     
+    def _extract_practical_examples(self, content: str) -> List[str]:
+        """Extract practical examples and code snippets from content."""
+        examples = []
+        
+        # Look for code blocks
+        code_blocks = re.findall(r'```[\w]*\n(.*?)\n```', content, re.DOTALL)
+        for code in code_blocks[:3]:  # Take first 3 code blocks
+            clean_code = code.strip()[:200]  # Limit length
+            if clean_code:
+                examples.append(f"Code example: {clean_code}")
+        
+        # Look for example patterns
+        example_patterns = [
+            r'(?:for example|example:|e\.g\.)[:\s]*(.*?)(?:\.|$)',
+            r'(?:consider|suppose|imagine)[:\s]*(.*?)(?:\.|$)',
+            r'(?:usage|use case)[:\s]*(.*?)(?:\.|$)'
+        ]
+        
+        for pattern in example_patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE)
+            for match in matches[:2]:  # Limit to 2 per pattern
+                clean_example = re.sub(r'\s+', ' ', match.strip())[:150]
+                if len(clean_example) > 20:
+                    examples.append(f"Example: {clean_example}")
+        
+        return examples[:5]  # Max 5 examples
+
+    def _extract_key_concepts_with_definitions(self, content: str) -> Dict[str, str]:
+        """Extract key concepts with their definitions."""
+        concepts = {}
+        
+        # Look for definition patterns
+        definition_patterns = [
+            r'(\w+(?:\s+\w+){0,2})\s+is\s+(?:a|an|the)?\s*([^.]{10,100})',
+            r'(\w+(?:\s+\w+){0,2})\s*[:]\s*([^.]{10,100})',
+            r'(?:define|definition of)\s+(\w+(?:\s+\w+){0,2})\s*[:]\s*([^.]{10,100})'
+        ]
+        
+        for pattern in definition_patterns:
+            matches = re.findall(pattern, content, re.IGNORECASE)
+            for concept, definition in matches:
+                clean_concept = concept.strip().lower()
+                clean_definition = re.sub(r'\s+', ' ', definition.strip())
+                if len(clean_definition) > 15 and len(concepts) < 8:
+                    concepts[clean_concept] = clean_definition
+        
+        return concepts
+
+    def _extract_common_patterns(self, content: str) -> List[str]:
+        """Extract common patterns and best practices."""
+        patterns = []
+        
+        # Look for pattern indicators
+        pattern_indicators = [
+            r'(?:best practice|pattern|convention|guideline)[:\s]*(.*?)(?:\.|$)',
+            r'(?:always|never|should|must)[:\s]*(.*?)(?:\.|$)',
+            r'(?:tip|note|important)[:\s]*(.*?)(?:\.|$)',
+            r'(?:recommended|suggested)[:\s]*(.*?)(?:\.|$)'
+        ]
+        
+        for pattern in pattern_indicators:
+            matches = re.findall(pattern, content, re.IGNORECASE)
+            for match in matches[:2]:
+                clean_pattern = re.sub(r'\s+', ' ', match.strip())[:120]
+                if len(clean_pattern) > 15:
+                    patterns.append(clean_pattern)
+        
+        return patterns[:6]  # Max 6 patterns
+
     def _extract_main_concepts(self, content: str) -> List[str]:
         """Extract main concepts being taught."""
         
@@ -319,13 +359,12 @@ class ContentAnalyzer:
         concept_to_sources = defaultdict(list)
         
         for summary in summaries:
-            concepts = summary.key_topics + summary.main_concepts
+            concepts = summary.key_topics + list(summary.key_concepts.keys())
             for concept in concepts:
                 all_concepts.append(concept)
                 concept_to_sources[concept].append(summary.source_url)
         
         # Find concept relationships
-        concept_pairs = []
         for i, concept1 in enumerate(all_concepts):
             for j, concept2 in enumerate(all_concepts[i+1:], i+1):
                 if concept1 != concept2:
@@ -334,35 +373,56 @@ class ContentAnalyzer:
                     strength = len(common_sources) / max(len(concept_to_sources[concept1]), len(concept_to_sources[concept2]))
                     
                     if strength > 0.3:  # Only include strong relationships
-                        relationship_type = self._determine_relationship_type(concept1, concept2)
+                        relationship_type, connection_desc = self._determine_relationship_type_and_description(concept1, concept2)
                         relationships.append(KnowledgeRelationship(
                             source_concept=concept1,
                             target_concept=concept2,
                             relationship_type=relationship_type,
+                            connection_description=connection_desc,
                             strength=strength,
                             source_urls=list(common_sources)
                         ))
         
         return relationships
     
-    def _determine_relationship_type(self, concept1: str, concept2: str) -> str:
-        """Determine the type of relationship between concepts."""
+    def _determine_relationship_type_and_description(self, concept1: str, concept2: str) -> Tuple[str, str]:
+        """Determine the type of relationship and description between concepts."""
         
-        # Simple heuristics for relationship types
-        prerequisite_pairs = [
-            ('python', 'django'), ('python', 'flask'), ('python', 'fastapi'),
-            ('javascript', 'react'), ('javascript', 'vue'), ('javascript', 'angular'),
-            ('html', 'css'), ('css', 'javascript'),
-            ('sql', 'database'), ('git', 'github')
+        # Detailed relationship mappings
+        relationship_mappings = [
+            # Prerequisites
+            (('python', 'django'), 'prerequisite', 'Python fundamentals are required before learning Django framework'),
+            (('python', 'flask'), 'prerequisite', 'Python knowledge is essential for Flask web development'),
+            (('javascript', 'react'), 'prerequisite', 'JavaScript mastery is needed before React development'),
+            (('javascript', 'vue'), 'prerequisite', 'JavaScript skills are fundamental for Vue.js'),
+            (('html', 'css'), 'prerequisite', 'HTML structure knowledge comes before CSS styling'),
+            (('css', 'javascript'), 'builds_on', 'JavaScript enhances CSS with dynamic interactions'),
+            
+            # Extensions and builds upon
+            (('react', 'next.js'), 'extends', 'Next.js extends React with server-side rendering and routing'),
+            (('javascript', 'typescript'), 'extends', 'TypeScript adds static typing to JavaScript'),
+            (('sql', 'postgresql'), 'applies_to', 'SQL knowledge applies directly to PostgreSQL database'),
+            
+            # Related technologies
+            (('docker', 'kubernetes'), 'builds_on', 'Kubernetes orchestrates Docker containers at scale'),
+            (('git', 'github'), 'applies_to', 'Git version control is used through GitHub platform'),
+            (('pandas', 'numpy'), 'builds_on', 'Pandas is built on top of NumPy for data manipulation'),
+            (('matplotlib', 'pandas'), 'related_to', 'Matplotlib and Pandas work together for data visualization'),
         ]
         
-        for prereq, advanced in prerequisite_pairs:
-            if (prereq in concept1.lower() and advanced in concept2.lower()) or \
-               (prereq in concept2.lower() and advanced in concept1.lower()):
-                return 'prerequisite'
+        # Check for exact matches
+        for (term1, term2), rel_type, description in relationship_mappings:
+            if (term1 in concept1.lower() and term2 in concept2.lower()) or \
+               (term1 in concept2.lower() and term2 in concept1.lower()):
+                return rel_type, description
         
-        # Default to related_to
-        return 'related_to'
+        # General relationship patterns
+        if any(term in concept1.lower() for term in ['basic', 'fundamental', 'intro']) and \
+           any(term in concept2.lower() for term in ['advanced', 'expert', 'optimization']):
+            return 'prerequisite', f'{concept1} provides foundational knowledge for {concept2}'
+        
+        # Default relationship
+        return 'related_to', f'{concept1} and {concept2} are commonly used together in development'
     
     def generate_topic_clusters(self, summaries: List[ContentSummary]) -> Dict[str, List[str]]:
         """Group related topics into clusters."""
@@ -395,20 +455,14 @@ class ContentAnalyzer:
         
         paths = []
         
-        # Group by difficulty
-        by_difficulty = defaultdict(list)
-        for summary in summaries:
-            by_difficulty[summary.difficulty_level].append(summary)
-        
-        # Create paths for each topic cluster
+        # Group by difficulty - we'll use a simple heuristic based on content complexity
         clusters = self.generate_topic_clusters(summaries)
         
         for cluster_name, urls in clusters.items():
             cluster_summaries = [s for s in summaries if s.source_url in urls]
             
-            # Sort by difficulty: Beginner -> Intermediate -> Advanced
-            difficulty_order = {'Beginner': 0, 'Intermediate': 1, 'Advanced': 2}
-            cluster_summaries.sort(key=lambda x: difficulty_order.get(x.difficulty_level, 1))
+            # Sort by content complexity (number of concepts as proxy)
+            cluster_summaries.sort(key=lambda x: len(getattr(x, 'key_concepts', {})))
             
             if len(cluster_summaries) >= 2:
                 path = [s.source_url for s in cluster_summaries]
@@ -416,7 +470,119 @@ class ContentAnalyzer:
         
         return paths
     
-    def generate_complete_summary(self, limit: int = 100) -> Optional[DatabaseSummary]:
+    def generate_quiz(self, summaries: List[ContentSummary]) -> Optional[Quiz]:
+        """Generate a comprehensive quiz based on the analyzed content."""
+        
+        if not self.llm:
+            print("⚠️ LLM not available - using basic quiz generation")
+            return self._generate_basic_quiz(summaries)
+        
+        questions = []
+        
+        # Generate questions for key concepts from each source
+        for summary in summaries[:5]:  # Limit to first 5 sources to avoid too many questions
+            for concept, definition in list(summary.key_concepts.items())[:2]:  # 2 questions per source
+                question = self._generate_concept_question(concept, definition, summary)
+                if question:
+                    questions.append(question)
+        
+        if not questions:
+            return None
+        
+        return Quiz(
+            title="Knowledge Assessment Quiz",
+            description="Test your understanding of the key concepts from the learning resources",
+            questions=questions,
+            passing_score=70,  # 70% to pass
+            estimated_time=f"{len(questions) * 2} minutes"  # 2 minutes per question
+        )
+    
+    def _generate_concept_question(self, concept: str, definition: str, summary: ContentSummary) -> Optional[QuizQuestion]:
+        """Generate a quiz question for a specific concept using LLM."""
+        
+        prompt_template = PromptTemplate.from_template(
+            """
+            Create a multiple choice question to test understanding of this concept:
+            
+            Concept: {concept}
+            Definition: {definition}
+            Context: This is from learning material about {title}
+            
+            Generate a question with 4 options where:
+            - Option A, B, C, D are provided
+            - Only one is correct
+            - The incorrect options are plausible but wrong
+            - Include a brief explanation of why the correct answer is right
+            
+            Format as JSON:
+            {{
+                "question": "What is...",
+                "options": ["A: ...", "B: ...", "C: ...", "D: ..."],
+                "correct_answer": 0,
+                "explanation": "The correct answer is A because..."
+            }}
+            """
+        )
+        
+        try:
+            prompt = prompt_template.format(
+                concept=concept,
+                definition=definition,
+                title=summary.title
+            )
+            response = self.llm.invoke(prompt)
+            
+            # Extract JSON from response
+            json_match = re.search(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', str(response))
+            if json_match:
+                question_data = json.loads(json_match.group())
+                
+                return QuizQuestion(
+                    question=question_data.get('question', ''),
+                    options=question_data.get('options', []),
+                    correct_answer=question_data.get('correct_answer', 0),
+                    explanation=question_data.get('explanation', ''),
+                    concept=concept,
+                    source_url=summary.source_url
+                )
+        
+        except Exception as e:
+            print(f"Error generating question for {concept}: {e}")
+        
+        return None
+    
+    def _generate_basic_quiz(self, summaries: List[ContentSummary]) -> Quiz:
+        """Generate a basic quiz without LLM."""
+        
+        questions = []
+        
+        # Create simple questions from key concepts
+        for summary in summaries[:3]:
+            for concept in list(summary.key_concepts.keys())[:2]:
+                question = QuizQuestion(
+                    question=f"Which of the following best describes {concept}?",
+                    options=[
+                        f"A: {concept} is a programming language",
+                        f"B: {concept} is a database system", 
+                        f"C: {concept} is a web framework",
+                        f"D: {concept} is a development tool"
+                    ],
+                    correct_answer=0,  # Default to A
+                    explanation=f"This question tests knowledge of {concept}",
+                    concept=concept,
+                    source_url=summary.source_url
+                )
+                questions.append(question)
+        
+        return Quiz(
+            title="Basic Knowledge Quiz",
+            description="Simple quiz based on the learning content",
+            questions=questions,
+            passing_score=60,
+            estimated_time=f"{len(questions) * 2} minutes"
+        )
+
+    def generate_complete_summary(self, limit: int = 100, include_quiz: bool = False) -> Optional[DatabaseSummary]:
         """Generate complete summary of the vector database content."""
         
         if not self.connect_database():
@@ -449,6 +615,12 @@ class ContentAnalyzer:
         topic_clusters = self.generate_topic_clusters(content_summaries)
         learning_paths = self.generate_learning_paths(content_summaries)
         
+        # Generate quiz if requested
+        quiz = None
+        if include_quiz:
+            print("📝 Generating knowledge quiz...")
+            quiz = self.generate_quiz(content_summaries)
+        
         from datetime import datetime
         
         return DatabaseSummary(
@@ -457,6 +629,7 @@ class ContentAnalyzer:
             knowledge_map=knowledge_map,
             topic_clusters=topic_clusters,
             learning_paths=learning_paths,
+            quiz=quiz,
             generated_at=datetime.now().isoformat()
         )
 

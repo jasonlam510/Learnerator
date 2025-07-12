@@ -8,7 +8,7 @@ and creates an interactive HTML report.
 import os
 from datetime import datetime
 from content_analyzer import ContentAnalyzer
-from html_generator import HTMLSummaryGenerator
+from summary_module.html_generator import HTMLSummaryGenerator
 
 
 def main():
