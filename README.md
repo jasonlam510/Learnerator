@@ -1,135 +1,229 @@
-# Learning Plan Generator Chrome Extension
+# Learning Plan Generator with Ollama
 
-A Chrome extension that generates personalized learning plans for any topic using an LLM server.
+A JavaScript-based learning plan generator that uses Ollama and local LLMs to create structured, comprehensive learning plans for any topic.
 
 ## Features
 
-- **Topic Input**: Enter any topic you want to learn (e.g., React, n8n, Python, etc.)
-- **Learning Plan Generation**: Generate comprehensive learning plans with multiple stages
-- **Visual Timeline**: Beautiful vertical timeline showing learning stages with status indicators
-- **Status Tracking**: Visual indicators for finished (green), ongoing (yellow), and pending (grey) stages
+- 🎯 **Topic-based Learning Plans**: Generate personalized learning plans for any subject
+- 🔍 **Search Keywords**: Each stage includes relevant keywords for online research
+- 📚 **Structured Output**: Uses Zod schemas for type-safe, validated responses
+- 🤖 **Local LLM**: Powered by Ollama - no API keys required
+- 📊 **Progress Tracking**: Each stage includes status tracking
+- 🎨 **Beautiful Console Output**: Formatted display with emojis and clear structure
+
+## Prerequisites
+
+1. **Node.js** (v18 or higher)
+2. **Ollama** installed and running locally
+3. A compatible model (e.g., `llama3.1`, `llama2`, `mistral`)
+
+### Installing Ollama
+
+Visit [ollama.ai](https://ollama.ai) and follow the installation instructions for your platform.
+
+After installation, pull a model:
+```bash
+ollama pull llama3.1
+```
 
 ## Installation
 
-1. **Download/Clone** this repository to your local machine
+1. Clone or download this project
+2. Navigate to the `plan_generation` directory
+3. Install dependencies:
 
-2. **Open Chrome** and navigate to `chrome://extensions/`
-
-3. **Enable Developer Mode** by toggling the switch in the top-right corner
-
-4. **Click "Load unpacked"** and select the folder containing this extension
-
-5. **Pin the extension** to your toolbar for easy access
+```bash
+npm install
+```
 
 ## Usage
 
-1. **Click the extension icon** in your Chrome toolbar
-2. **Enter a topic** you want to learn (e.g., "React", "n8n", "Python", "Machine Learning")
-3. **Click "Generate Learning Plan"** or press Enter
-4. **View your personalized learning plan** with a beautiful timeline interface
+### Basic Usage
 
-## File Structure
-
-```
-├── manifest.json      # Chrome extension configuration
-├── popup.html         # Extension popup interface
-├── popup.js           # JavaScript logic and API calls
-├── styles.css         # Styling for the timeline and UI
-└── README.md          # This file
+Run the script with a default example:
+```bash
+npm start
 ```
 
-## LLM Server Integration
-
-The extension currently uses dummy data for testing. To connect to your LLM server:
-
-1. **Open `popup.js`**
-2. **Find the `callLLMServer` function** (around line 60)
-3. **Replace the TODO section** with your actual LLM server implementation
-
-### Expected API Response Format
-
-Your LLM server should return data in this format:
+### Programmatic Usage
 
 ```javascript
-[
+import { generateLearningPlan, displayLearningPlan } from './process.js';
+
+// Generate a learning plan
+const plan = await generateLearningPlan("machine learning fundamentals");
+console.log(plan);
+
+// Or display it with formatting
+await displayLearningPlan("web development with React");
+```
+
+### Custom Model
+
+```javascript
+// Use a different Ollama model
+const plan = await generateLearningPlan("python programming", "llama2");
+```
+
+## API Reference
+
+### `generateLearningPlan(topic, model)`
+
+Generates a structured learning plan for the given topic.
+
+**Parameters:**
+- `topic` (string): The learning topic to generate a plan for
+- `model` (string, optional): The Ollama model to use (default: 'llama3.1')
+
+**Returns:**
+- `Promise<Object>`: The generated learning plan
+
+**Example:**
+```javascript
+const plan = await generateLearningPlan("machine learning fundamentals");
+```
+
+### `displayLearningPlan(topic, model)`
+
+Generates and displays a learning plan with formatted console output.
+
+**Parameters:**
+- `topic` (string): The learning topic
+- `model` (string, optional): The Ollama model to use (default: 'llama3.1')
+
+**Returns:**
+- `Promise<Object>`: The generated learning plan
+
+## Response Format
+
+The API returns a structured learning plan with the following format:
+
+```json
+{
+  "topic_name": "Machine Learning Fundamentals",
+  "stages": [
     {
-        "header": "Stage Title",
-        "details": "Detailed description of what to learn in this stage",
-        "status": "finished|ongoing|pending"
+      "header": "Introduction to Machine Learning",
+      "details": "Learn the basic concepts and types of machine learning algorithms",
+      "keywords": ["machine learning basics", "ML algorithms", "supervised learning"],
+      "status": "pending"
     },
-    // ... more stages
-]
-```
-
-### Example LLM Server Implementation
-
-```javascript
-async function callLLMServer(topic) {
-    try {
-        const response = await fetch('YOUR_LLM_SERVER_ENDPOINT', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer YOUR_API_KEY'
-            },
-            body: JSON.stringify({
-                topic: topic,
-                prompt: `Generate a comprehensive learning plan for ${topic} with 8-10 stages. Each stage should have a header and detailed description.`
-            })
-        });
-        
-        const data = await response.json();
-        return data.learningPlan;
-    } catch (error) {
-        console.error('Error calling LLM server:', error);
-        throw error;
+    {
+      "header": "Data Preprocessing",
+      "details": "Understand data cleaning, normalization, and feature engineering",
+      "keywords": ["data preprocessing", "feature engineering", "data cleaning"],
+      "status": "pending"
     }
+  ]
 }
 ```
 
-## Testing
+### Response Fields
 
-The extension comes with dummy data for React learning, so you can test it immediately:
+- **topic_name**: Refined and properly formatted topic name
+- **stages**: Array of learning stages (typically 5-10 stages), each containing:
+  - **header**: Concise title for the learning stage
+  - **details**: Detailed description of what the stage covers
+  - **keywords**: List of 3-5 relevant search terms for online research
+  - **status**: Current status (always "pending" for new plans)
 
-1. **Load the extension** as described above
-2. **Enter any topic** (e.g., "React", "n8n", "Python")
-3. **Click generate** to see the timeline with dummy data
-4. **Observe the different status indicators**:
-   - 🟢 Green dots: Finished stages
-   - 🟡 Yellow dots: Ongoing stages  
-   - ⚪ Grey dots: Pending stages
+## Example Output
+
+```
+🎯 Generating learning plan for: "machine learning fundamentals"
+📚 Using model: llama3.1
+⏳ Please wait...
+
+📖 Learning Plan: Machine Learning Fundamentals
+==================================================
+
+1. Introduction to Machine Learning
+   📝 Learn the basic concepts and types of machine learning algorithms
+   🔍 Keywords: machine learning basics, ML algorithms, supervised learning
+   📊 Status: pending
+
+2. Data Preprocessing
+   📝 Understand data cleaning, normalization, and feature engineering
+   🔍 Keywords: data preprocessing, feature engineering, data cleaning
+   📊 Status: pending
+
+✅ Learning plan generated successfully!
+```
+
+## Error Handling
+
+The module includes comprehensive error handling:
+
+- **Empty Topic**: Throws an error if the topic is empty or only whitespace
+- **Ollama Connection**: Handles connection errors to the Ollama service
+- **Invalid Response**: Validates the LLM response using Zod schemas
+- **JSON Parsing**: Handles malformed JSON responses
 
 ## Customization
 
-### Adding More Dummy Data
+### Modifying the Schema
 
-To add more dummy learning plans for testing, modify the `dummyLearningPlan` array in `popup.js`.
+You can customize the learning plan structure by modifying the Zod schemas:
 
-### Styling Changes
+```javascript
+const Stage = z.object({
+    header: z.string(),
+    details: z.string(),
+    keywords: z.array(z.string()),
+    status: z.string().default("pending"),
+    // Add custom fields here
+    difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+    estimatedTime: z.string().optional()
+});
+```
 
-Modify `styles.css` to customize the appearance of the timeline, colors, and overall design.
+### Changing the Prompt
 
-### Timeline Status Logic
+Modify the prompt in the `generateLearningPlan` function to customize the output style or add specific requirements.
 
-The status logic can be enhanced to:
-- Track user progress
-- Save progress to local storage
-- Allow manual status updates
-- Sync with external learning platforms
+## Development
 
-## Browser Compatibility
+### Running in Development Mode
 
-- Chrome 88+
-- Edge 88+ (Chromium-based)
-- Other Chromium-based browsers
+```bash
+npm run dev
+```
 
-## Troubleshooting
+This uses Node.js's `--watch` flag to automatically restart when files change.
 
-1. **Extension not loading**: Make sure Developer Mode is enabled
-2. **Changes not appearing**: Reload the extension after making changes
-3. **API errors**: Check the browser console for detailed error messages
-4. **Styling issues**: Clear browser cache and reload the extension
+### Testing
+
+Create custom test cases by modifying the `main()` function or create a separate test file.
+
+## Dependencies
+
+- **ollama**: JavaScript client for Ollama
+- **zod**: TypeScript-first schema validation
+- **zod-to-json-schema**: Convert Zod schemas to JSON Schema for structured output
 
 ## License
 
-This project is open source and available under the MIT License. 
+MIT License - feel free to use and modify as needed.
+
+## Contributing
+
+1. Fork the project
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Ollama not running**: Make sure Ollama is installed and running (`ollama serve`)
+2. **Model not found**: Pull the required model (`ollama pull llama3.1`)
+3. **Connection refused**: Check if Ollama is running on the default port (11434)
+4. **Out of memory**: Try using a smaller model or increase system memory
+
+### Getting Help
+
+- Check the [Ollama documentation](https://github.com/jmorganca/ollama)
+- Review the error messages - they usually provide clear guidance
+- Ensure your Node.js version is 18 or higher 
