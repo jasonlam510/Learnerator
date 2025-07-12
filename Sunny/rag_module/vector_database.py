@@ -20,7 +20,6 @@ from pymilvus import (
     Collection,
     MilvusException
 )
-from rag_chatbot import RAGChatbot
 
 
 # Configure logging
@@ -439,6 +438,120 @@ class VectorDatabase:
         except Exception as e:
             logger.error(f"Error adding content to database: {e}")
             return False
+        
+    def search(self, query: str, top_k: int = 10) -> List[SearchResult]:
+        """Search for similar content using vector similarity."""
+        try:
+            # Generate query embedding
+            query_embedding = self.model.encode(query).tolist()
+            
+            # Search parameters
+            search_params = {
+                "metric_type": "COSINE",
+                "params": {"nprobe": 10}
+            }
+            
+            # Perform search
+            results = self.collection.search(
+                data=[query_embedding],
+                anns_field="embedding",
+                param=search_params,
+                limit=top_k,
+                output_fields=["content", "source_url", "content_type", "title", 
+                              "chunk_index", "total_chunks", "timestamp", "metadata"]
+            )
+            
+            # Convert to SearchResult objects
+            search_results = []
+            for hit in results[0]:
+                chunk = ContentChunk(
+                    id=hit.id,
+                    content=hit.entity.get("content"),
+                    source_url=hit.entity.get("source_url"),
+                    content_type=hit.entity.get("content_type"),
+                    title=hit.entity.get("title"),
+                    chunk_index=hit.entity.get("chunk_index"),
+                    total_chunks=hit.entity.get("total_chunks"),
+                    timestamp=hit.entity.get("timestamp"),
+                    metadata=json.loads(hit.entity.get("metadata", "{}"))
+                )
+                
+                search_results.append(SearchResult(
+                    chunk=chunk,
+                    similarity=hit.score
+                ))
+            
+            return search_results
+            
+        except Exception as e:
+            logger.error(f"Error searching database: {e}")
+            return []
+    
+    def get_all_content(self) -> List[ContentChunk]:
+        """Get all content from the database."""
+        try:
+            # Query all data
+            results = self.collection.query(
+                expr="chunk_index >= 0",  # Get all chunks
+                output_fields=["content", "source_url", "content_type", "title", 
+                              "chunk_index", "total_chunks", "timestamp", "metadata"]
+            )
+            
+            # Convert to ContentChunk objects
+            chunks = []
+            for result in results:
+                chunk = ContentChunk(
+                    id=result.get("id"),
+                    content=result.get("content"),
+                    source_url=result.get("source_url"),
+                    content_type=result.get("content_type"),
+                    title=result.get("title"),
+                    chunk_index=result.get("chunk_index"),
+                    total_chunks=result.get("total_chunks"),
+                    timestamp=result.get("timestamp"),
+                    metadata=json.loads(result.get("metadata", "{}"))
+                )
+                chunks.append(chunk)
+            
+            return chunks
+            
+        except Exception as e:
+            logger.error(f"Error getting all content: {e}")
+            return []
+    
+    def get_stats(self) -> Dict:
+        """Get database statistics."""
+        try:
+            # Get collection stats
+            stats = self.collection.num_entities
+            
+            # Get unique sources
+            results = self.collection.query(
+                expr="chunk_index >= 0",
+                output_fields=["source_url", "content_type"]
+            )
+            
+            unique_sources = set()
+            content_types = {}
+            
+            for result in results:
+                source_url = result.get("source_url")
+                content_type = result.get("content_type", "unknown")
+                
+                if source_url:
+                    unique_sources.add(source_url)
+                
+                content_types[content_type] = content_types.get(content_type, 0) + 1
+            
+            return {
+                "total_chunks": stats,
+                "unique_sources": len(unique_sources),
+                "content_types": content_types
+            }
+            
+        except Exception as e:
+            logger.error(f"Error getting stats: {e}")
+            return {"total_chunks": 0, "unique_sources": 0, "content_types": {}}
 
 
 class LearningResourceVectorDB:
@@ -452,7 +565,15 @@ class LearningResourceVectorDB:
     def initialize(self):
         """Initialize the vector database connection."""
         self.vector_db.connect()
-        self.chatbot = RAGChatbot(self.vector_db)
+        # Initialize chatbot if needed (optional dependency)
+        try:
+            from .rag_chatbot import RAGChatbot
+            self.chatbot = RAGChatbot(self.vector_db)
+            logger.info("RAG Chatbot initialized successfully")
+        except ImportError:
+            logger.info("RAG Chatbot not available (optional)")
+            self.chatbot = None
+        
         logger.info("Learning Resource Vector Database initialized successfully")
     
     def process_urls(self, urls: List[str]) -> Dict:
@@ -540,11 +661,25 @@ class LearningResourceVectorDB:
         except Exception as e:
             logger.error(f"Error adding resource {url}: {e}")
             return False
-
-
-# Convenience function for external use
-def create_learning_vector_db(milvus_host: str = "localhost", milvus_port: str = "19530") -> LearningResourceVectorDB:
-    """Create and initialize a learning resource vector database."""
-    db = LearningResourceVectorDB(milvus_host, milvus_port)
-    db.initialize()
-    return db
+        
+    def search_resources(self, query: str, limit: int = 10) -> List[SearchResult]:
+        """Search for resources based on a query."""
+        try:
+            logger.info(f"Searching resources for query: {query}")
+            results = self.vector_db.search(query, limit)
+            logger.info(f"Found {len(results)} results for query: {query}")
+            return results
+        except Exception as e:
+            logger.error(f"Error searching resources: {e}")
+            return []
+    
+    def add_content(self, content: str, metadata: Dict) -> bool:
+        """Add content directly with metadata."""
+        content_data = {
+            'content': content,
+            'title': metadata.get('title', 'Untitled'),
+            'url': metadata.get('url', 'unknown'),
+            'content_type': metadata.get('source_type', 'manual'),
+            'metadata': metadata
+        }
+        return self.vector_db.add_content(content_data)
