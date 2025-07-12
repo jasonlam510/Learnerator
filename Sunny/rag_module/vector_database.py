@@ -662,17 +662,16 @@ class LearningResourceVectorDB:
             logger.error(f"Error adding resource {url}: {e}")
             return False
         
-    def search_content(self, query: str, top_k: int = 10) -> List[SearchResult]:
-        """Search for content similar to the query."""
-        return self.vector_db.search(query, top_k)
-    
-    def get_all_content(self) -> List[ContentChunk]:
-        """Get all stored content."""
-        return self.vector_db.get_all_content()
-    
-    def get_database_stats(self) -> Dict:
-        """Get database statistics."""
-        return self.vector_db.get_stats()
+    def search_resources(self, query: str, limit: int = 10) -> List[SearchResult]:
+        """Search for resources based on a query."""
+        try:
+            logger.info(f"Searching resources for query: {query}")
+            results = self.vector_db.search(query, limit)
+            logger.info(f"Found {len(results)} results for query: {query}")
+            return results
+        except Exception as e:
+            logger.error(f"Error searching resources: {e}")
+            return []
     
     def add_content(self, content: str, metadata: Dict) -> bool:
         """Add content directly with metadata."""

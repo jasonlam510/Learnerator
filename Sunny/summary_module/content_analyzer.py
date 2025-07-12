@@ -17,11 +17,10 @@ from dotenv import load_dotenv
 # Add the parent directory to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from rag_module.vector_database import create_learning_vector_db
 from langchain_together import Together
 from langchain_core.prompts import PromptTemplate
 from utils.schema import (
-    ContentSummary, KnowledgeRelationship, QuizQuestion, Quiz, 
+    ContentSummary, KnowledgeMap, QuizQuestion, Quiz, 
     DatabaseSummary, MOCK_CONTENT_SUMMARIES
 )
 
@@ -32,10 +31,16 @@ load_dotenv()
 class ContentAnalyzer:
     """Analyzes content stored in vector database and generates summaries."""
     
-    def __init__(self):
-        self.db = None
+    def __init__(self, db):
         self.llm = None
         self._initialize_llm()
+        try:
+            self.db = db
+            print("✅ Connected to vector database")
+            return
+        except Exception as e:
+            print(f"❌ Failed to connect to vector database: {e}")
+            return
     
     def _initialize_llm(self):
         """Initialize the LLM for content analysis."""
@@ -49,16 +54,6 @@ class ContentAnalyzer:
                 )
         except Exception as e:
             print(f"Warning: Could not initialize LLM: {e}")
-    
-    def connect_database(self):
-        """Connect to the vector database."""
-        try:
-            self.db = create_learning_vector_db()
-            print("✅ Connected to vector database")
-            return True
-        except Exception as e:
-            print(f"❌ Failed to connect to vector database: {e}")
-            return False
     
     def get_all_sources(self, limit: int = 100) -> Dict[str, List]:
         """Get all unique sources and their content chunks."""
@@ -349,7 +344,7 @@ class ContentAnalyzer:
         
         return summary
     
-    def analyze_knowledge_relationships(self, summaries: List[ContentSummary]) -> List[KnowledgeRelationship]:
+    def analyze_knowledge_relationships(self, summaries: List[ContentSummary]) -> List[KnowledgeMap]:
         """Analyze relationships between knowledge concepts across sources."""
         
         relationships = []
@@ -374,7 +369,7 @@ class ContentAnalyzer:
                     
                     if strength > 0.3:  # Only include strong relationships
                         relationship_type, connection_desc = self._determine_relationship_type_and_description(concept1, concept2)
-                        relationships.append(KnowledgeRelationship(
+                        relationships.append(KnowledgeMap(
                             source_concept=concept1,
                             target_concept=concept2,
                             relationship_type=relationship_type,
@@ -584,10 +579,7 @@ class ContentAnalyzer:
 
     def generate_complete_summary(self, limit: int = 100, include_quiz: bool = False) -> Optional[DatabaseSummary]:
         """Generate complete summary of the vector database content."""
-        
-        if not self.connect_database():
-            return None
-        
+    
         print("🔍 Analyzing vector database content...")
         
         # Get all sources with limit
@@ -632,47 +624,3 @@ class ContentAnalyzer:
             quiz=quiz,
             generated_at=datetime.now().isoformat()
         )
-
-
-def main():
-    """Test the content analyzer."""
-    
-    print("🚀 CONTENT ANALYZER TEST")
-    print("=" * 40)
-    
-    analyzer = ContentAnalyzer()
-    summary = analyzer.generate_complete_summary()
-    
-    if summary:
-        print(f"\n📊 ANALYSIS COMPLETE")
-        print(f"Total sources: {summary.total_sources}")
-        print(f"Content summaries: {len(summary.content_summaries)}")
-        print(f"Knowledge relationships: {len(summary.knowledge_map)}")
-        print(f"Topic clusters: {len(summary.topic_clusters)}")
-        print(f"Learning paths: {len(summary.learning_paths)}")
-        
-        print(f"\n📚 CONTENT SUMMARIES:")
-        for i, content in enumerate(summary.content_summaries, 1):
-            print(f"\n{i}. {content.title}")
-            print(f"   🔗 {content.source_url}")
-            print(f"   📝 Type: {content.content_type}")
-            print(f"   🎯 Topics: {', '.join(content.key_topics[:3])}")
-            print(f"   📊 Difficulty: {content.difficulty_level}")
-            print(f"   ⏱️  Time: {content.estimated_time}")
-        
-        print(f"\n🔗 KNOWLEDGE RELATIONSHIPS:")
-        for rel in summary.knowledge_map[:5]:  # Show first 5
-            print(f"   {rel.source_concept} --{rel.relationship_type}--> {rel.target_concept} (strength: {rel.strength:.2f})")
-        
-        print(f"\n🎯 TOPIC CLUSTERS:")
-        for cluster, urls in summary.topic_clusters.items():
-            print(f"   {cluster}: {len(urls)} resources")
-        
-        return summary
-    else:
-        print("❌ Failed to generate summary")
-        return None
-
-
-if __name__ == "__main__":
-    main()

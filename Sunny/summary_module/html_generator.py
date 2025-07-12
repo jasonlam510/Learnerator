@@ -20,8 +20,8 @@ from summary_module.html_components.styles import StylesGenerator
 class LearningDashboardGenerator:
     """Main generator for the learning resource dashboard."""
     
-    def __init__(self):
-        self.analyzer = ContentAnalyzer()
+    def __init__(self, db):
+        self.analyzer = ContentAnalyzer(db)
         self.knowledge_diagram = KnowledgeDiagramGenerator()
         self.content_cards = ContentCardsGenerator()
         self.quiz_interface = QuizInterfaceGenerator()

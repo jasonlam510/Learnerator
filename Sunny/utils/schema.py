@@ -4,9 +4,8 @@ Schema definitions for the Learning Resource System
 This module contains all dataclass definitions used throughout the system.
 """
 
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional
 from dataclasses import dataclass
-from datetime import datetime
 
 
 # Vector Database Schema
@@ -45,7 +44,7 @@ class ContentSummary:
 
 
 @dataclass
-class KnowledgeRelationship:
+class KnowledgeMap:
     """Relationship between knowledge concepts."""
     source_concept: str
     target_concept: str
@@ -83,7 +82,7 @@ class DatabaseSummary:
     """Complete summary of the vector database content."""
     total_sources: int
     content_summaries: List[ContentSummary]
-    knowledge_map: List[KnowledgeRelationship]
+    knowledge_map: List[KnowledgeMap]
     topic_clusters: Dict[str, List[str]]
     learning_paths: List[List[str]]
     quiz: Optional[Quiz]  # Optional quiz for testing knowledge
@@ -141,61 +140,6 @@ class ChatResponse:
     sources: List[str]
     method_used: str  # 'llm' or 'retrieval'
     confidence: float
-
-
-@dataclass
-class ChatHistory:
-    """Chat conversation history."""
-    messages: List[Dict[str, str]]  # [{"role": "user/assistant", "content": "..."}]
-    session_id: str
-    created_at: datetime
-
-
-# Tool Registry Schema  
-@dataclass
-class ToolInfo:
-    """Information about a search tool."""
-    name: str
-    description: str
-    website_url: str
-    search_function: callable
-    enabled: bool = True
-
-
-# API Schema
-@dataclass
-class APIResponse:
-    """Standard API response format."""
-    success: bool
-    data: Optional[Dict] = None
-    message: Optional[str] = None
-    error: Optional[str] = None
-
-
-@dataclass
-class HealthStatus:
-    """System health status."""
-    database_connected: bool
-    llm_available: bool
-    total_resources: int
-    last_updated: str
-
-
-# Mock Data for Testing
-MOCK_SEARCH_RESULTS = {
-    "websites": [
-        "https://docs.python.org/3/tutorial/",
-        "https://realpython.com/python-basics/",
-        "https://www.w3schools.com/python/",
-        "https://python.org/about/gettingstarted/",
-        "https://learnpython.org/"
-    ],
-    "youtube_urls": [
-        "https://www.youtube.com/watch?v=kqtD5dpn9C8",
-        "https://www.youtube.com/watch?v=rfscVS0vtbw", 
-        "https://www.youtube.com/watch?v=_uQrJ0TkZlc"
-    ]
-}
 
 MOCK_CONTENT_SUMMARIES = [
     ContentSummary(

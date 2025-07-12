@@ -15,7 +15,7 @@ from googleapiclient.errors import HttpError
 from langchain_together import Together
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
-from utils.schema import SearchConfig, ResourceSearchResult, ResourceSources, SearchResult, MOCK_SEARCH_RESULTS
+from utils.schema import SearchConfig, ResourceSources, SearchResult, MOCK_SEARCH_RESULTS
 
 # Load environment variables
 load_dotenv()
@@ -41,41 +41,20 @@ class LearningResourceFinder:
         self.together_api_key = os.getenv("TOGETHER_API_KEY")
         self.google_api_key = os.getenv("GOOGLE_API_KEY")
         self.cse_id = os.getenv("GOOGLE_CSE_ID")
-        
-        # Track which credentials are missing
-        missing_credentials = []
-        if not self.together_api_key:
-            missing_credentials.append("TOGETHER_API_KEY")
-        if not self.google_api_key:
-            missing_credentials.append("GOOGLE_API_KEY")
-        if not self.cse_id:
-            missing_credentials.append("GOOGLE_CSE_ID")
-        
-        if missing_credentials:
-            print(f"⚠️ Missing API credentials: {', '.join(missing_credentials)}")
-            print("🔄 Will use mock data for search results")
-            self.use_mock_data = True
-        else:
-            self.use_mock_data = False
     
     def _initialize_services(self) -> None:
         """Initialize external services."""
-        if not self.use_mock_data:
-            try:
-                self.llm = Together(
-                    model="mistralai/Mixtral-8x7B-Instruct-v0.1",
-                    together_api_key=self.together_api_key,
-                    max_tokens=self.config.llm_max_tokens
-                )
-                
-                self.search_service = build('customsearch', 'v1', developerKey=self.google_api_key)
-            except Exception as e:
-                print(f"⚠️ Failed to initialize services: {e}")
-                print("🔄 Will use mock data for search results")
-                self.use_mock_data = True
-        else:
-            self.llm = None
-            self.search_service = None
+        try:
+            self.llm = Together(
+                model="mistralai/Mixtral-8x7B-Instruct-v0.1",
+                together_api_key=self.together_api_key,
+                max_tokens=self.config.llm_max_tokens
+            )
+            
+            self.search_service = build('customsearch', 'v1', developerKey=self.google_api_key)
+        except Exception as e:
+            print(f"⚠️ Failed to initialize services: {e}")
+            print("🔄 Will use mock data for search results")
     
     def _parse_learning_content(self, content: str) -> List[str]:
         """Parse learning content into individual topics/features."""
@@ -189,77 +168,77 @@ class LearningResourceFinder:
         
         return list(dict.fromkeys(key_domains))[:self.config.max_domains], youtube_channels
     
-    def _search_basics_tutorial(self, topic: str, domains: List[str]) -> Optional[str]:
-        """Search for a basics/introduction tutorial."""
-        for domain in domains:
-            query = f'{topic} basics introduction tutorial beginner site:{domain}'
+    # def _search_basics_tutorial(self, topic: str, domains: List[str]) -> Optional[str]:
+    #     """Search for a basics/introduction tutorial."""
+    #     for domain in domains:
+    #         query = f'{topic} basics introduction tutorial beginner site:{domain}'
             
-            try:
-                result = self.search_service.cse().list(
-                    q=query,
-                    cx=self.cse_id,
-                    num=3
-                ).execute()
+    #         try:
+    #             result = self.search_service.cse().list(
+    #                 q=query,
+    #                 cx=self.cse_id,
+    #                 num=3
+    #             ).execute()
                 
-                if 'items' in result:
-                    for item in result['items']:
-                        url = item.get('link')
-                        title = item.get('title', '').lower()
-                        snippet = item.get('snippet', '').lower()
+    #             if 'items' in result:
+    #                 for item in result['items']:
+    #                     url = item.get('link')
+    #                     title = item.get('title', '').lower()
+    #                     snippet = item.get('snippet', '').lower()
                         
-                        if url and self._is_valid_basics_tutorial(url, title, snippet):
-                            print(f"Found basics tutorial: {url}")
-                            return url
+    #                     if url and self._is_valid_basics_tutorial(url, title, snippet):
+    #                         print(f"Found basics tutorial: {url}")
+    #                         return url
                             
-            except HttpError as e:
-                if "rateLimitExceeded" in str(e) or "Quota exceeded" in str(e):
-                    print(f"⚠️ API quota exceeded for {domain}. Skipping remaining searches.")
-                    break  # Stop trying more domains to conserve quota
-                elif "API key not valid" in str(e):
-                    print(f"❌ Invalid API key. Please check your Google API key in .env file.")
-                    break
-                else:
-                    print(f"Search error for basics tutorial on {domain}: {e}")
-                continue
+    #         except HttpError as e:
+    #             if "rateLimitExceeded" in str(e) or "Quota exceeded" in str(e):
+    #                 print(f"⚠️ API quota exceeded for {domain}. Skipping remaining searches.")
+    #                 break  # Stop trying more domains to conserve quota
+    #             elif "API key not valid" in str(e):
+    #                 print(f"❌ Invalid API key. Please check your Google API key in .env file.")
+    #                 break
+    #             else:
+    #                 print(f"Search error for basics tutorial on {domain}: {e}")
+    #             continue
         
-        return None
+    #     return None
     
-    def _search_youtube_demo(self, topic: str, youtube_channels: List[str]) -> Optional[str]:
-        """Search for a YouTube demonstration video."""
-        youtube_domains = [domain for domain in youtube_channels if 'youtube.com' in domain] + ['youtube.com']
+    # def _search_youtube_demo(self, topic: str, youtube_channels: List[str]) -> Optional[str]:
+    #     """Search for a YouTube demonstration video."""
+    #     youtube_domains = [domain for domain in youtube_channels if 'youtube.com' in domain] + ['youtube.com']
         
-        for domain in youtube_domains:
-            query = f'{topic} demo demonstration tutorial example site:{domain}'
+    #     for domain in youtube_domains:
+    #         query = f'{topic} demo demonstration tutorial example site:{domain}'
             
-            try:
-                result = self.search_service.cse().list(
-                    q=query,
-                    cx=self.cse_id,
-                    num=5
-                ).execute()
+    #         try:
+    #             result = self.search_service.cse().list(
+    #                 q=query,
+    #                 cx=self.cse_id,
+    #                 num=5
+    #             ).execute()
                 
-                if 'items' in result:
-                    for item in result['items']:
-                        url = item.get('link')
-                        title = item.get('title', '').lower()
-                        snippet = item.get('snippet', '').lower()
+    #             if 'items' in result:
+    #                 for item in result['items']:
+    #                     url = item.get('link')
+    #                     title = item.get('title', '').lower()
+    #                     snippet = item.get('snippet', '').lower()
                         
-                        if url and self._is_valid_youtube_demo(url, title, snippet):
-                            print(f"Found YouTube demo: {url}")
-                            return url
+    #                     if url and self._is_valid_youtube_demo(url, title, snippet):
+    #                         print(f"Found YouTube demo: {url}")
+    #                         return url
                             
-            except HttpError as e:
-                if "rateLimitExceeded" in str(e) or "Quota exceeded" in str(e):
-                    print(f"⚠️ API quota exceeded for YouTube search. Stopping.")
-                    break
-                elif "API key not valid" in str(e):
-                    print(f"❌ Invalid API key. Please check your Google API key.")
-                    break
-                else:
-                    print(f"Search error for YouTube demo: {e}")
-                continue
+    #         except HttpError as e:
+    #             if "rateLimitExceeded" in str(e) or "Quota exceeded" in str(e):
+    #                 print(f"⚠️ API quota exceeded for YouTube search. Stopping.")
+    #                 break
+    #             elif "API key not valid" in str(e):
+    #                 print(f"❌ Invalid API key. Please check your Google API key.")
+    #                 break
+    #             else:
+    #                 print(f"Search error for YouTube demo: {e}")
+    #             continue
         
-        return None
+    #     return None
     
     def _search_specific_topics(self, topic: str, learning_content: List[str], domains: List[str], youtube_channels: List[str]) -> Dict[str, List[str]]:
         """Search for resources covering specific topics/features - one dedicated resource per topic."""
@@ -279,11 +258,6 @@ class LearningResourceFinder:
             if youtube_url:
                 topic_coverage[specific_topic].append(youtube_url)
                 continue
-            
-            # Fallback: general search across all domains
-            fallback_url = self._search_topic_fallback(topic, specific_topic, domains)
-            if fallback_url:
-                topic_coverage[specific_topic].append(fallback_url)
         
         return topic_coverage
 
@@ -345,32 +319,6 @@ class LearningResourceFinder:
         
         return None
 
-    def _search_topic_fallback(self, topic: str, specific_topic: str, domains: List[str]) -> Optional[str]:
-        """Fallback search for a specific topic across all domains."""
-        query = f'{topic} {specific_topic} tutorial'
-        
-        try:
-            result = self.search_service.cse().list(
-                q=query,
-                cx=self.cse_id,
-                num=5
-            ).execute()
-            
-            if 'items' in result:
-                for item in result['items']:
-                    url = item.get('link')
-                    title = item.get('title', '').lower()
-                    snippet = item.get('snippet', '').lower()
-                    
-                    if url and self._is_relevant_to_topic(url, title, snippet, specific_topic):
-                        print(f"Found fallback resource for '{specific_topic}': {url}")
-                        return url
-                        
-        except HttpError as e:
-            print(f"Fallback search error for {specific_topic}: {e}")
-        
-        return None
-
     def _is_dedicated_tutorial(self, url: str, title: str, snippet: str, specific_topic: str) -> bool:
         """Check if a URL is a dedicated tutorial for the specific topic."""
         excluded_terms = ['login', 'signup', 'pay', 'subscribe']
@@ -397,180 +345,33 @@ class LearningResourceFinder:
         is_clean_url = all(term not in url.lower() for term in excluded_terms)
         
         return topic_mentioned and is_youtube and is_tutorial and is_clean_url
-
-    def _is_relevant_to_topic(self, url: str, title: str, snippet: str, specific_topic: str) -> bool:
-        """Check if a URL is relevant to a specific topic/feature."""
-        excluded_terms = ['login', 'signup', 'pay', 'subscribe']
-        topic_keywords = specific_topic.lower().split()
-        
-        # Check if the specific topic appears in title or snippet
-        topic_mentioned = any(keyword in title or keyword in snippet for keyword in topic_keywords)
-        is_clean_url = all(term not in url.lower() for term in excluded_terms)
-        
-        return topic_mentioned and is_clean_url
-
-    def _search_additional_youtube(self, topic: str, youtube_channels: List[str], current_urls: List[str], needed: int) -> List[str]:
-        """Search for additional YouTube videos to maintain balance."""
-        additional_youtube = []
-        youtube_domains = [domain for domain in youtube_channels if 'youtube.com' in domain] + ['youtube.com']
-        
-        for domain in youtube_domains:
-            if len(additional_youtube) >= needed:
-                break
-                
-            query = f'{topic} tutorial example demo site:{domain}'
-            
-            try:
-                result = self.search_service.cse().list(
-                    q=query,
-                    cx=self.cse_id,
-                    num=min(needed - len(additional_youtube) + 1, 3)
-                ).execute()
-                
-                if 'items' in result:
-                    for item in result['items']:
-                        if len(additional_youtube) >= needed:
-                            break
-                            
-                        url = item.get('link')
-                        title = item.get('title', '').lower()
-                        snippet = item.get('snippet', '').lower()
-                        
-                        if (url and url not in current_urls and 
-                            self._is_valid_youtube_demo(url, title, snippet)):
-                            additional_youtube.append(url)
-                            print(f"Added additional YouTube video: {url}")
-                            
-            except HttpError as e:
-                print(f"Search error for additional YouTube on {domain}: {e}")
-                continue
-        
-        return additional_youtube
-
-    def _search_additional_tutorials(self, topic: str, domains: List[str], current_urls: List[str], needed: int) -> List[str]:
-        """Search for additional tutorial pages to maintain balance."""
-        additional_tutorials = []
-        
-        for domain in domains:
-            if len(additional_tutorials) >= needed:
-                break
-                
-            query = f'{topic} tutorial guide learn site:{domain}'
-            
-            try:
-                result = self.search_service.cse().list(
-                    q=query,
-                    cx=self.cse_id,
-                    num=min(needed - len(additional_tutorials) + 1, 2)
-                ).execute()
-                
-                if 'items' in result:
-                    for item in result['items']:
-                        if len(additional_tutorials) >= needed:
-                            break
-                            
-                        url = item.get('link')
-                        title = item.get('title', '').lower()
-                        snippet = item.get('snippet', '').lower()
-                        
-                        if (url and url not in current_urls and 
-                            'youtube.com' not in url and
-                            self._is_valid_tutorial(url, title, snippet)):
-                            additional_tutorials.append(url)
-                            print(f"Added additional tutorial page: {url}")
-                            
-            except HttpError as e:
-                print(f"Search error for additional tutorials on {domain}: {e}")
-                continue
-        
-        return additional_tutorials
-
-    def _search_additional_resources(self, topic: str, domains: List[str], current_urls: List[str], needed: int) -> List[str]:
-        """Search for additional tutorial resources."""
-        additional_urls = []
-        
-        for domain in domains:
-            if len(additional_urls) >= needed:
-                break
-                
-            query = f'{topic} tutorial site:{domain}'
-            
-            try:
-                result = self.search_service.cse().list(
-                    q=query,
-                    cx=self.cse_id,
-                    num=min(needed - len(additional_urls), 2)
-                ).execute()
-                
-                if 'items' in result:
-                    for item in result['items']:
-                        if len(additional_urls) >= needed:
-                            break
-                        
-                        url = item.get('link')
-                        title = item.get('title', '').lower()
-                        snippet = item.get('snippet', '').lower()
-                        
-                        if url and url not in current_urls and self._is_valid_tutorial(url, title, snippet):
-                            additional_urls.append(url)
-                            
-            except HttpError as e:
-                print(f"Search error for domain {domain}: {e}")
-                continue
-        
-        return additional_urls
     
-    def _is_valid_basics_tutorial(self, url: str, title: str, snippet: str) -> bool:
-        """Check if a URL is a valid basics tutorial."""
-        basics_terms = ['basics', 'introduction', 'beginner', 'getting started', 'tutorial']
-        excluded_terms = ['login', 'signup', 'pay', 'subscribe']
+    # def _is_valid_basics_tutorial(self, url: str, title: str, snippet: str) -> bool:
+    #     """Check if a URL is a valid basics tutorial."""
+    #     basics_terms = ['tutorial', 'learn', 'guide', 'how to']
+    #     excluded_terms = ['login', 'signup', 'pay', 'subscribe']
         
-        return (
-            any(term in title or term in snippet for term in basics_terms) and
-            all(term not in url.lower() for term in excluded_terms) and
-            'youtube.com' not in url
-        )
+    #     return (
+    #         any(term in title or term in snippet for term in basics_terms) and
+    #         all(term not in url.lower() for term in excluded_terms) and
+    #         'youtube.com' not in url
+    #     )
     
-    def _is_valid_youtube_demo(self, url: str, title: str, snippet: str) -> bool:
-        """Check if a URL is a valid YouTube demonstration."""
-        demo_terms = ['demo', 'demonstration', 'example', 'tutorial', 'how to']
-        excluded_terms = ['login', 'signup', 'pay', 'subscribe']
+    # def _is_valid_youtube_demo(self, url: str, title: str, snippet: str) -> bool:
+    #     """Check if a URL is a valid YouTube demonstration."""
+    #     demo_terms = ['demo', 'demonstration', 'example', 'tutorial', 'how to']
+    #     excluded_terms = ['login', 'signup', 'pay', 'subscribe']
         
-        return (
-            'youtube.com' in url and '/watch' in url and
-            any(term in title or term in snippet for term in demo_terms) and
-            all(term not in url.lower() for term in excluded_terms)
-        )
-    
-    def _is_valid_tutorial(self, url: str, title: str, snippet: str) -> bool:
-        """Check if a URL is a valid tutorial."""
-        tutorial_terms = ['tutorial', 'learn', 'guide', 'how to']
-        excluded_terms = ['login', 'signup', 'pay', 'subscribe']
-        
-        return (
-            any(term in title or term in snippet for term in tutorial_terms) and
-            all(term not in url.lower() for term in excluded_terms)
-        )
+    #     return (
+    #         'youtube.com' in url and '/watch' in url and
+    #         any(term in title or term in snippet for term in demo_terms) and
+    #         all(term not in url.lower() for term in excluded_terms)
+    #     )
     
     def find_learning_resources(self, topic: str, content: str, max_results: int = None) -> SearchResult:
-        """
-        Find learning resources for a given topic and specific learning content.
         
-        Args:
-            topic: The main topic to learn about (e.g., "javascript fundamentals")
-            content: Specific features/topics to learn (e.g., "[es6+ features, async/await, promises]")
-            max_results: Maximum number of URLs to return (defaults to config value)
-        
-        Returns:
-            SearchResult containing URLs and metadata about the search
-        """
         if max_results is None:
             max_results = self.config.max_results
-        
-        # Check if we should use mock data
-        if self.use_mock_data:
-            print("🔄 Using mock data due to missing API credentials")
-            return self._get_mock_search_result(topic, content, "Missing API credentials")
         
         try:
             # Step 1: Parse learning content into specific topics
@@ -605,40 +406,6 @@ class LearningResourceFinder:
                     else:
                         tutorial_urls.append(url)
             
-            # Step 6: Fill remaining slots while maintaining balance
-            # remaining_slots = max_results - len(urls)
-            # if remaining_slots > 0:
-            #     # Calculate target balance
-            #     min_youtube_needed = max(1, int(max_results * self.config.min_youtube_ratio))
-            #     min_tutorial_needed = max(1, int(max_results * self.config.min_tutorial_ratio))
-                
-            #     current_youtube = len(youtube_urls)
-            #     current_tutorial = len(tutorial_urls)
-                
-            #     # Add more YouTube videos if needed
-            #     if current_youtube < min_youtube_needed:
-            #         youtube_needed = min_youtube_needed - current_youtube
-            #         additional_youtube = self._search_additional_youtube(topic, youtube_channels, urls, youtube_needed)
-            #         for yt_url in additional_youtube:
-            #             if len(urls) < max_results:
-            #                 urls.append(yt_url)
-            #                 youtube_urls.append(yt_url)
-                
-            #     # Add more tutorial pages if needed
-            #     if current_tutorial < min_tutorial_needed:
-            #         tutorial_needed = min_tutorial_needed - current_tutorial
-            #         additional_tutorials = self._search_additional_tutorials(topic, domains, urls, tutorial_needed)
-            #         for tut_url in additional_tutorials:
-            #             if len(urls) < max_results:
-            #                 urls.append(tut_url)
-            #                 tutorial_urls.append(tut_url)
-                
-            #     # Fill any remaining slots with general resources
-            #     still_remaining = max_results - len(urls)
-            #     if still_remaining > 0:
-            #         general_resources = self._search_additional_resources(topic, domains, urls, still_remaining)
-            #         urls.extend(general_resources)
-            
             # Validate results and report
             has_basics = any('youtube.com' not in url for url in urls)
             has_youtube = any('youtube.com' in url for url in urls)
@@ -668,47 +435,14 @@ class LearningResourceFinder:
         except HttpError as e:
             error_msg = f"Google API error: {e}"
             print(f"⚠️ {error_msg}")
-            print("🔄 Returning mock data...")
-            return self._get_mock_search_result(topic, content, error_msg)
         
         except Exception as e:
             error_msg = f"Unexpected error: {e}"
             print(f"⚠️ {error_msg}")
-            print("🔄 Returning mock data...")
-            return self._get_mock_search_result(topic, content, error_msg)
-    
-    def _get_mock_search_result(self, topic: str, content: str, error_msg: str) -> SearchResult:
-        """Return mock search results when API calls fail."""
-        
-        # Parse learning content to get topics
-        learning_content = self._parse_learning_content(content)
-        
-        # Use mock data from schema
-        mock_urls = MOCK_SEARCH_RESULTS["websites"] + MOCK_SEARCH_RESULTS["youtube_urls"]
-        
-        # Create topic coverage mapping with mock data
-        topic_coverage = {}
-        for i, topic_item in enumerate(learning_content[:len(mock_urls)]):
-            if i < len(mock_urls):
-                topic_coverage[topic_item] = [mock_urls[i]]
-        
-        has_youtube = any('youtube.com' in url for url in mock_urls)
-        has_tutorial = any('youtube.com' not in url for url in mock_urls)
-        
-        print(f"📚 Mock data: {len(mock_urls)} URLs, covers {len(topic_coverage)} topics")
-        
-        return SearchResult(
-            urls=mock_urls,
-            has_basics_tutorial=has_tutorial,
-            has_youtube_demo=has_youtube,
-            covered_topics=list(topic_coverage.keys()),
-            topic_coverage=topic_coverage,
-            error=f"Using mock data due to: {error_msg}"
-        )
 
 
 # Tool interface for agentic LLMs
-def find_learning_resources(topic: str, content: str, max_results: int = 3) -> Dict:
+def find_learning_resources(topic: str, content: str, max_results: int = 5) -> Dict:
     """
     Tool function for finding learning resources with specific learning objectives.
     
@@ -757,3 +491,12 @@ def find_learning_resources(topic: str, content: str, max_results: int = 3) -> D
             'topic_coverage': {},
             'error': f"Tool initialization error: {e}"
         }
+        
+if __name__ == "__main__":
+    # Example usage
+    topic = "javascript fundamentals"
+    content = "[es6+ features, async/await, promises, arrow functions, destructuring]"
+    max_results = 5
+    
+    result = find_learning_resources(topic, content, max_results)
+    print(json.dumps(result, indent=2))
