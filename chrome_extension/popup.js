@@ -721,13 +721,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const urlData = urlResponse.data;
                 console.log(`✅ Found ${urlData.urls?.length || 0} URLs for ${stage.header}`);
 
-                
-                // Add URLs to the stage
-                // learningPlan[i].urls = urlData.urls || [];
-                // learningPlan[i].covered_topics = urlData.covered_topics || [];
-                // learningPlan[i].has_basics_tutorial = urlData.has_basics_tutorial || false;
-                // learningPlan[i].has_youtube_demo = urlData.has_youtube_demo || false;
-
             } else {
                 console.warn(`⚠️ Failed to get URLs for ${stage.header}:`, urlResponse?.error);
                 // Keep the stage without URLs
