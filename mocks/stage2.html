@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beginner Tools for Agentic AI and Automation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            animation: backgroundShift 20s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        @keyframes backgroundShift {
+            0%, 100% { 
+                transform: translateX(0) translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            25% { 
+                transform: translateX(-10px) translateY(-10px) rotate(1deg);
+                opacity: 0.8;
+            }
+            50% { 
+                transform: translateX(10px) translateY(10px) rotate(-1deg);
+                opacity: 0.9;
+            }
+            75% { 
+                transform: translateX(-5px) translateY(5px) rotate(0.5deg);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            0% {
+                filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+            }
+            100% {
+                filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+            }
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+            font-style: italic;
+            font-size: 1.1em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        
+        #cy {
+            width: 100%;
+            height: 800px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.2),
+                0 10px 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            cursor: default;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Graph container glow effect */
+        #cy::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+            border-radius: 22px;
+            z-index: -1;
+            animation: borderGlow 4s ease-in-out infinite;
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.002);
+            }
+        }
+        
+        .legend {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.1),
+                0 5px 15px rgba(0, 0, 0, 0.05);
+            backdrop-filter: blur(10px);
+        }
+        
+        .legend h3 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        
+        .legend-item {
+            display: inline-block;
+            margin-right: 25px;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        .legend-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .url-color { 
+            background: linear-gradient(45deg, #36A2EB, #2980b9);
+        }
+        .concept-color { 
+            background: linear-gradient(45deg, #4BC0C0, #2c9f9f);
+        }
+        .theme-color { 
+            background: linear-gradient(45deg, #FF6384, #e74c3c);
+        }
+        
+        .instructions {
+            margin-top: 15px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(232, 244, 248, 0.9) 0%, rgba(220, 240, 255, 0.8) 100%);
+            border-radius: 12px;
+            font-size: 14px;
+            color: #444;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        
+        .instructions strong {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(30, 30, 30, 0.9) 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 250px;
+            word-wrap: break-word;
+            box-shadow: 
+                0 8px 25px rgba(0, 0, 0, 0.3),
+                0 4px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+            transition: all 0.3s ease;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            #cy {
+                height: 600px;
+                border-radius: 15px;
+            }
+            
+            .legend {
+                padding: 15px;
+            }
+            
+            .legend-item {
+                margin-right: 15px;
+                margin-bottom: 8px;
+            }
+        }
+        
+        /* Loading animation */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        .loading::after {
+            content: '';
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Beginner Tools for Agentic AI</h1>
+    <p class="subtitle">Low-Code Development and Automation Workflows</p>
+    
+    <div id="cy"></div>
+    
+    <div class="legend">
+        <h3>Legend</h3>
+        <div class="legend-item">
+            <span class="legend-color url-color"></span>
+            <span>URL Sources</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color concept-color"></span>
+            <span>Key Concepts</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color theme-color"></span>
+            <span>Stage Theme</span>
+        </div>
+        <div class="instructions">
+            <strong>Interactions:</strong> Click nodes to highlight connections • Click background to reset • Hover for tooltips • Click blue URL nodes to open links
+        </div>
+    </div>
+
+    <div id="tooltip" class="tooltip" style="display: none;"></div>
+
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particleCount = 15;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                document.body.appendChild(particle);
+            }
+        }
+        
+        // Initialize particles
+        createParticles();
+
+        const elements = {
+            nodes: [
+                { data: { id: 'url1', label: 'n8n: Beginner\'s Guide', type: 'URL', url: 'https://www.getpassionfruit.com/blog/how-to-build-your-first-ai-workflow-with-n8n-beginners-guide' } },
+                { data: { id: 'url2', label: 'Udemy: Agentic AI Course', type: 'URL', url: 'https://www.udemy.com/course/ai-agents-ai-automation-the-practical-agentic-ai-guide/' } },
+                { data: { id: 'url3', label: 'YouTube: Agentic AI Tutorial 1', type: 'URL', url: 'https://www.youtube.com/watch?v=g5pY1Tb_r4g' } },
+                { data: { id: 'url4', label: 'YouTube: Agentic AI Tutorial 2', type: 'URL', url: 'https://www.youtube.com/watch?v=d-CuF6dlqLg' } },
+                { data: { id: 'url5', label: 'YouTube: Agentic AI Tutorial 3', type: 'URL', url: 'https://www.youtube.com/watch?v=vF2Z4T97xcQ' } },
+                { data: { id: 'concept1', label: 'Low-Code Development', type: 'Concept' } },
+                { data: { id: 'concept2', label: 'Automation Workflows', type: 'Concept' } },
+                { data: { id: 'concept3', label: 'Beginner Accessibility', type: 'Concept' } },
+                { data: { id: 'theme', label: 'Beginner Tools for Agentic AI and Automation', type: 'Theme' } }
+            ],
+            
+            edges: [
+                { data: { source: 'url1', target: 'concept1', label: 'Describes' } },
+                { data: { source: 'url1', target: 'concept2', label: 'Emphasizes' } },
+                { data: { source: 'url1', target: 'concept3', label: 'Supports' } },
+                { data: { source: 'url2', target: 'concept1', label: 'Describes' } },
+                { data: { source: 'url2', target: 'concept2', label: 'Emphasizes' } },
+                { data: { source: 'url2', target: 'concept3', label: 'Supports' } },
+                { data: { source: 'url3', target: 'concept2', label: 'Emphasizes' } },
+                { data: { source: 'url3', target: 'concept3', label: 'Supports' } },
+                { data: { source: 'url4', target: 'concept2', label: 'Emphasizes' } },
+                { data: { source: 'url4', target: 'concept3', label: 'Supports' } },
+                { data: { source: 'url5', target: 'concept1', label: 'Describes' } },
+                { data: { source: 'url5', target: 'concept2', label: 'Emphasizes' } },
+                { data: { source: 'url5', target: 'concept3', label: 'Supports' } },
+                { data: { source: 'url1', target: 'url2', label: 'Shares Low-Code Focus' } },
+                { data: { source: 'url3', target: 'url4', label: 'Shares Tutorial Focus' } },
+                { data: { source: 'url3', target: 'url5', label: 'Shares Tutorial Focus' } },
+                { data: { source: 'url4', target: 'url5', label: 'Shares Tutorial Focus' } },
+                { data: { source: 'url1', target: 'url3', label: 'Shares Automation Focus' } },
+                { data: { source: 'url2', target: 'url5', label: 'Shares Automation Focus' } },
+                { data: { source: 'concept1', target: 'theme', label: 'Core Tool Type' } },
+                { data: { source: 'concept2', target: 'theme', label: 'Key Application' } },
+                { data: { source: 'concept3', target: 'theme', label: 'Beginner Focus' } }
+            ]
+        };
+
+        const cy = cytoscape({
+            container: document.getElementById('cy'),
+            
+            elements: elements,
+            
+            style: [
+                // URL nodes
+                {
+                    selector: 'node[type="URL"]',
+                    style: {
+                        'background-color': '#36A2EB',
+                        'label': 'data(label)',
+                        'color': 'white',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'font-size': '10px',
+                        'font-weight': 'bold',
+                        'width': 80,
+                        'height': 80,
+                        'border-width': 2,
+                        'border-color': '#2980b9',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '70px',
+                        'opacity': 1,
+                        'transition-property': 'width, height, border-width, background-color',
+                        'transition-duration': '0.3s',
+                        'transition-timing-function': 'ease-out'
+                    }
+                },
+                
+                // Concept nodes
+                {
+                    selector: 'node[type="Concept"]',
+                    style: {
+                        'background-color': '#4BC0C0',
+                        'label': 'data(label)',
+                        'color': 'white',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'font-size': '9px',
+                        'font-weight': 'bold',
+                        'width': 70,
+                        'height': 70,
+                        'border-width': 2,
+                        'border-color': '#2c9f9f',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '60px',
+                        'opacity': 1,
+                        'transition-property': 'width, height, border-width, background-color',
+                        'transition-duration': '0.3s',
+                        'transition-timing-function': 'ease-out'
+                    }
+                },
+                
+                // Theme node
+                {
+                    selector: 'node[type="Theme"]',
+                    style: {
+                        'background-color': '#FF6384',
+                        'label': 'data(label)',
+                        'color': 'white',
+                        'text-valign': 'center',
+                        'text-halign': 'center',
+                        'font-size': '12px',
+                        'font-weight': 'bold',
+                        'width': 120,
+                        'height': 120,
+                        'border-width': 3,
+                        'border-color': '#e74c3c',
+                        'text-wrap': 'wrap',
+                        'text-max-width': '100px',
+                        'opacity': 1,
+                        'transition-property': 'width, height, border-width, background-color',
+                        'transition-duration': '0.3s',
+                        'transition-timing-function': 'ease-out'
+                    }
+                },
+                
+                // Edges
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 2,
+                        'line-color': '#888',
+                        'target-arrow-color': '#888',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier',
+                        'label': 'data(label)',
+                        'font-size': '12px',
+                        'color': '#333',
+                        'text-rotation': 'autorotate',
+                        'text-margin-y': -15,
+                        'text-margin-x': 0,
+                        'source-text-offset': 20,
+                        'target-text-offset': 20,
+                        'text-background-opacity': 0,
+                        'font-weight': '600',
+                        'opacity': 1,
+                        'transition-property': 'width, line-color, target-arrow-color, font-size',
+                        'transition-duration': '0.3s',
+                        'transition-timing-function': 'ease-out'
+                    }
+                },
+                
+                // Enhanced hover effects for URL nodes
+                {
+                    selector: 'node[type="URL"]:hover',
+                    style: {
+                        'width': 90,
+                        'height': 90,
+                        'border-width': 4,
+                        'border-color': '#1a5490',
+                        'background-color': '#2980b9',
+                        'z-index': 10
+                    }
+                },
+                
+                // Enhanced hover effects for Concept nodes
+                {
+                    selector: 'node[type="Concept"]:hover',
+                    style: {
+                        'width': 80,
+                        'height': 80,
+                        'border-width': 4,
+                        'border-color': '#1a7a7a',
+                        'background-color': '#2c9f9f',
+                        'z-index': 10
+                    }
+                },
+                
+                // Enhanced hover effects for Theme node
+                {
+                    selector: 'node[type="Theme"]:hover',
+                    style: {
+                        'width': 135,
+                        'height': 135,
+                        'border-width': 5,
+                        'border-color': '#c0392b',
+                        'background-color': '#e74c3c',
+                        'z-index': 10
+                    }
+                },
+                
+                // Enhanced hover effects for edges
+                {
+                    selector: 'edge:hover',
+                    style: {
+                        'width': 4,
+                        'line-color': '#444',
+                        'target-arrow-color': '#444',
+                        'font-size': '14px',
+                        'color': '#222',
+                        'font-weight': 'bold',
+                        'z-index': 5
+                    }
+                },
+                
+                // Dimmed styles for inactive elements
+                {
+                    selector: '.dimmed',
+                    style: {
+                        'opacity': 0.3
+                    }
+                },
+                
+                // Highlighted edge labels
+                {
+                    selector: '.highlighted-edge',
+                    style: {
+                        'font-size': '16px',
+                        'font-weight': 'bold',
+                        'color': '#222'
+                    }
+                },
+                
+                // Hover glow effect for connected elements
+                {
+                    selector: '.hover-connected',
+                    style: {
+                        'opacity': 0.7,
+                        'line-color': '#555',
+                        'target-arrow-color': '#555'
+                    }
+                }
+            ],
+            
+            layout: {
+                name: 'cose',
+                animate: true,
+                animationDuration: 1000,
+                fit: true,
+                padding: 50,
+                nodeRepulsion: 8000,
+                nodeOverlap: 20,
+                idealEdgeLength: 100,
+                edgeElasticity: 200,
+                nestingFactor: 5,
+                gravity: 80,
+                numIter: 1000,
+                initialTemp: 200,
+                coolingFactor: 0.95,
+                minTemp: 1.0
+            }
+        });
+
+        // Track tooltip element
+        const tooltip = document.getElementById('tooltip');
+
+        // Function to reset graph to normal state
+        function resetGraph() {
+            cy.elements().removeClass('dimmed highlighted-edge hover-connected');
+            cy.edges().style('font-size', '12px');
+        }
+
+        // Function to highlight node and its connections
+        function highlightNode(clickedNode) {
+            // Reset first
+            resetGraph();
+            
+            // Get connected elements
+            const connectedEdges = clickedNode.connectedEdges();
+            const connectedNodes = connectedEdges.connectedNodes();
+            const highlightedElements = clickedNode.union(connectedNodes).union(connectedEdges);
+            
+            // Dim all elements first
+            cy.elements().addClass('dimmed');
+            
+            // Remove dimming from highlighted elements
+            highlightedElements.removeClass('dimmed');
+            
+            // Highlight connected edge labels
+            connectedEdges.addClass('highlighted-edge');
+        }
+
+        // Function to show hover preview of connections
+        function showHoverPreview(hoveredNode) {
+            const connectedEdges = hoveredNode.connectedEdges();
+            const connectedNodes = connectedEdges.connectedNodes();
+            
+            // Add subtle highlighting to connected elements
+            connectedEdges.addClass('hover-connected');
+            connectedNodes.addClass('hover-connected');
+        }
+
+        // Function to hide hover preview
+        function hideHoverPreview() {
+            cy.elements().removeClass('hover-connected');
+        }
+
+        // Node click event handler
+        cy.on('tap', 'node', function(evt) {
+            const node = evt.target;
+            
+            // Highlight the node and its connections
+            highlightNode(node);
+            
+            // If it's a URL node, open the link
+            if (node.data('type') === 'URL') {
+                const url = node.data('url');
+                if (url) {
+                    window.open(url, '_blank');
+                }
+            }
+            
+            // Prevent event bubbling to background
+            evt.stopPropagation();
+        });
+
+        // Background click event handler
+        cy.on('tap', function(evt) {
+            // Only reset if clicking on background (not on a node or edge)
+            if (evt.target === cy) {
+                setInitialState();
+            }
+        });
+
+        // Enhanced hover events for nodes
+        cy.on('mouseover', 'node', function(evt) {
+            const node = evt.target;
+            const nodeType = node.data('type');
+            let tooltipText = '';
+            
+            // Show connection preview only if not in clicked state
+            if (!cy.elements().hasClass('dimmed')) {
+                showHoverPreview(node);
+            }
+            
+            // Change cursor based on node type
+            const container = document.getElementById('cy');
+            if (nodeType === 'URL') {
+                container.style.cursor = 'pointer';
+                tooltipText = `${node.data('label')}<br><em>Click to open: ${node.data('url')}</em>`;
+            } else if (nodeType === 'Concept') {
+                container.style.cursor = 'help';
+                tooltipText = `<strong>Key Concept:</strong> ${node.data('label')}`;
+            } else if (nodeType === 'Theme') {
+                container.style.cursor = 'help';
+                tooltipText = `<strong>Stage Theme:</strong> ${node.data('label')}`;
+            }
+            
+            tooltip.innerHTML = tooltipText;
+            tooltip.style.display = 'block';
+            tooltip.style.opacity = '0';
+            setTimeout(() => {
+                tooltip.style.opacity = '1';
+            }, 50);
+        });
+
+        // Mouse move event for tooltip positioning
+        cy.on('mousemove', 'node', function(evt) {
+            const renderedPosition = evt.renderedPosition || evt.cyRenderedPosition;
+            tooltip.style.left = (renderedPosition.x + 15) + 'px';
+            tooltip.style.top = (renderedPosition.y - 15) + 'px';
+        });
+
+        // Hide tooltip and reset cursor when mouse leaves node
+        cy.on('mouseout', 'node', function(evt) {
+            tooltip.style.display = 'none';
+            document.getElementById('cy').style.cursor = 'default';
+            
+            // Hide connection preview only if not in clicked state
+            if (!cy.elements().hasClass('dimmed')) {
+                hideHoverPreview();
+            }
+        });
+
+        // Enhanced hover events for edges
+        cy.on('mouseover', 'edge', function(evt) {
+            const edge = evt.target;
+            const container = document.getElementById('cy');
+            container.style.cursor = 'help';
+            
+            // Show edge tooltip
+            const sourceLabel = edge.source().data('label');
+            const targetLabel = edge.target().data('label');
+            const relationshipLabel = edge.data('label');
+            
+            tooltip.innerHTML = `<strong>${sourceLabel}</strong><br><em>${relationshipLabel}</em><br><strong>${targetLabel}</strong>`;
+            tooltip.style.display = 'block';
+            tooltip.style.opacity = '0';
+            setTimeout(() => {
+                tooltip.style.opacity = '1';
+            }, 50);
+        });
+
+        // Mouse move event for edge tooltip positioning
+        cy.on('mousemove', 'edge', function(evt) {
+            const renderedPosition = evt.renderedPosition || evt.cyRenderedPosition;
+            tooltip.style.left = (renderedPosition.x + 15) + 'px';
+            tooltip.style.top = (renderedPosition.y - 15) + 'px';
+        });
+
+        // Hide tooltip when mouse leaves edge
+        cy.on('mouseout', 'edge', function(evt) {
+            tooltip.style.display = 'none';
+            document.getElementById('cy').style.cursor = 'default';
+        });
+
+        // Fit the graph to the container
+        cy.fit();
+        
+        // Center the graph
+        cy.center();
+        
+        // Initial state: Show only theme node and its connections
+        function setInitialState() {
+            const themeNode = cy.getElementById('theme');
+            const connectedEdges = themeNode.connectedEdges();
+            const connectedNodes = connectedEdges.connectedNodes();
+            const highlightedElements = themeNode.union(connectedNodes).union(connectedEdges);
+            
+            // Dim all elements first
+            cy.elements().addClass('dimmed');
+            
+            // Remove dimming from theme and its connections
+            highlightedElements.removeClass('dimmed');
+            
+            // Highlight connected edge labels
+            connectedEdges.addClass('highlighted-edge');
+        }
+        
+        // Set initial state after a brief delay to ensure graph is rendered
+        setTimeout(setInitialState, 500);
+    </script>
+</body>
+</html> 
