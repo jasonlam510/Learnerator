@@ -267,9 +267,4 @@ class TabGroupManager {
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = TabGroupManager;
-}
-
-// Make available globally for Chrome extension
-if (typeof window !== 'undefined') {
-  window.TabGroupManager = TabGroupManager;
 } 
