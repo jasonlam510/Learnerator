@@ -207,6 +207,7 @@ body {
     display: flex;
     gap: 12px;
     align-items: center;
+    justify-content: right;
     flex-wrap: wrap;
 }
 
