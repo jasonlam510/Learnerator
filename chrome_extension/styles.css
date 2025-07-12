@@ -261,6 +261,36 @@ body {
     transform: none;
 }
 
+.quiz-button {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.quiz-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.quiz-button:active {
+    transform: translateY(0);
+}
+
+.quiz-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Logo Header Styles */
 .logo-header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);

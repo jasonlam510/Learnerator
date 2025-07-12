@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Quiz</title>
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --text-color: #374151;
+            --bg-color: #ffffff;
+            --border-color: #e5e7eb;
+            --hover-color: #f3f4f6;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            --radius: 8px;
+            --spacing: 1rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--bg-color);
+            padding: var(--spacing);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .quiz-container {
+            background: var(--bg-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: calc(var(--spacing) * 2);
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: calc(var(--spacing) * 2);
+            padding-bottom: var(--spacing);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .quiz-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .quiz-instructions {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .question {
+            margin-bottom: calc(var(--spacing) * 2);
+            padding: var(--spacing);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background: #fafafa;
+        }
+
+        .question-number {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: var(--spacing);
+            line-height: 1.5;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius);
+            background: var(--bg-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .option:hover {
+            background: var(--hover-color);
+            border-color: var(--primary-color);
+        }
+
+        .option:focus-within {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        .radio-input {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .radio-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .radio-input:checked + .radio-custom {
+            border-color: var(--primary-color);
+            background: var(--primary-color);
+        }
+
+        .radio-input:checked + .radio-custom::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .option-text {
+            font-size: 1rem;
+            color: var(--text-color);
+            flex: 1;
+        }
+
+        .feedback {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            display: none;
+        }
+
+        .feedback.correct {
+            background: #ecfdf5;
+            color: var(--success-color);
+            border: 1px solid #a7f3d0;
+        }
+
+        .feedback.incorrect {
+            background: #fef2f2;
+            color: var(--error-color);
+            border: 1px solid #fecaca;
+        }
+
+        .score-display {
+            text-align: center;
+            margin-top: calc(var(--spacing) * 2);
+            padding: var(--spacing);
+            background: var(--hover-color);
+            border-radius: var(--radius);
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color);
+        }
+
+        .error {
+            text-align: center;
+            padding: 2rem;
+            color: var(--error-color);
+            background: #fef2f2;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 0.5rem;
+            }
+            
+            .quiz-container {
+                padding: var(--spacing);
+            }
+            
+            .quiz-title {
+                font-size: 1.5rem;
+            }
+            
+            .question-text {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container" id="quizContainer">
+        <div class="loading">Loading quiz...</div>
+    </div>
+
+    <script src="quiz-script.js"></script>
+</body>
+</html>
