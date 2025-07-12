@@ -1,7 +1,18 @@
 """
 Content Cards Generator for Learning Dashboard
 
-Generates HTML cards for displaying learning resource summaries.
+Generates HTML cards for displaying                    
+                <div class="common-patterns">
+                    <h5>📋 Best Practices:</h5>
+                    <ul>
+                        {''.join([f'<li>{pattern}</li>' for pattern in (summary.common_patterns[:3] if summary.common_patterns else [])])}
+                    </ul>
+                </div>     <div class="common-patterns">
+                    <h5>📋 Best Practices:</h5>
+                    <ul>
+                        {''.join([f'<li>{pattern}</li>' for pattern in (summary.common_patterns[:3] if summary.common_patterns else [])])}
+                    </ul>
+                </div>ing resource summaries.
 """
 
 import os
@@ -37,9 +48,10 @@ class ContentCardsGenerator:
         """Generate HTML for a single content card."""
         
         # Generate tags for key concepts
+        key_concepts = summary.key_concepts if summary.key_concepts else []
         concept_tags = ''.join([
             f'<span class="tag {self._get_topic_color_class(summary.topic_category)}">{concept}</span>'
-            for concept in summary.key_concepts[:5]  # Limit to 5 concepts
+            for concept in key_concepts[:5]  # Limit to 5 concepts
         ])
         
         # Generate practical examples
@@ -55,13 +67,13 @@ class ContentCardsGenerator:
             </div>
             """
         
-        # Generate real-world summary
-        real_world_html = ""
-        if summary.real_world_summary:
-            real_world_html = f"""
-            <div class="real-world-summary">
-                <h5>🌍 Real-World Application:</h5>
-                <p>{summary.real_world_summary}</p>
+        # Generate implementation summary
+        implementation_html = ""
+        if summary.implementation_summary:
+            implementation_html = f"""
+            <div class="implementation-summary">
+                <h5>🌍 Implementation:</h5>
+                <p>{summary.implementation_summary}</p>
             </div>
             """
         
@@ -70,19 +82,15 @@ class ContentCardsGenerator:
             <div class="card-header">
                 <div>
                     <h3 class="card-title">{summary.title}</h3>
-                    <p class="card-subtitle">{summary.source_type.title()} • {summary.topic_category.title()}</p>
+                    <p class="card-subtitle">{summary.content_type.title()} • {summary.topic_category.title()}</p>
                 </div>
-                <span class="card-type-badge">{summary.source_type}</span>
+                <span class="card-type-badge">{summary.content_type}</span>
             </div>
             
             <div class="card-content">
-                <div class="summary-text">
-                    <p>{summary.summary}</p>
-                </div>
-                
                 {examples_html}
                 
-                {real_world_html}
+                {implementation_html}
                 
                 <div class="key-concepts">
                     <h5>🔑 Key Concepts:</h5>
@@ -90,16 +98,23 @@ class ContentCardsGenerator:
                         {concept_tags}
                     </div>
                 </div>
+                
+                <div class="common-patterns">
+                    <h5>� Best Practices:</h5>
+                    <ul>
+                        {''.join([f'<li>{pattern}</li>' for pattern in summary.common_patterns[:3]])}
+                    </ul>
+                </div>
             </div>
             
             <div class="card-footer">
                 <div class="source-info">
-                    <a href="{summary.url}" target="_blank" rel="noopener noreferrer">
+                    <a href="{summary.source_url}" target="_blank" rel="noopener noreferrer">
                         📖 View Source
                     </a>
                 </div>
                 <div class="metadata">
-                    Added: {summary.date_added.strftime('%Y-%m-%d') if summary.date_added else 'Unknown'}
+                    Chunks: {summary.chunk_count}
                 </div>
             </div>
         </div>

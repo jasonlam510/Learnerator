@@ -23,6 +23,7 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 from rag_module.vector_database import LearningResourceVectorDB
+from summary_module.content_analyzer import ContentAnalyzer
 from summary_module.html_generator import LearningDashboardGenerator
 
 # Add project root to path
@@ -61,8 +62,10 @@ class TestRunner:
         
         # Step 3: Generate Dashboard
         print("\\n🎨 Step 2: Generating HTML Dashboard...")
-        generator = LearningDashboardGenerator(self.db)
-        success = generator.generate_complete_dashboard()
+        summaryGenerator = ContentAnalyzer(self.db)
+        summary = summaryGenerator.generate_complete_summary(include_quiz=True)
+        HTMLgenerator = LearningDashboardGenerator()
+        success = HTMLgenerator.generate_complete_dashboard(summary)
     
     def _start_local_server(self, port: int = 8000) -> bool:
         """Start local HTTP server."""

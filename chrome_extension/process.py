@@ -125,7 +125,7 @@ app.add_middleware(
 # Request model for FastAPI endpoint
 class TopicRequest(BaseModel):
     topic: str
-    model: str = "llama2"  # Allow model selection
+    model: str = "llama3.2"  # Allow model selection
     
     class Config:
         schema_extra = {
