@@ -159,6 +159,7 @@
             border-radius: var(--radius);
             font-weight: 500;
             display: none;
+            min-height: 20px;
         }
 
         .feedback.correct {
@@ -171,6 +172,34 @@
             background: #fef2f2;
             color: var(--error-color);
             border: 1px solid #fecaca;
+        }
+
+        /* Visual feedback for selected options */
+        .option.selected-correct {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        .option.selected-incorrect {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+        }
+
+        .option.correct-answer {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Disable hover effects for answered questions */
+        .option input:disabled + .radio-custom {
+            opacity: 0.6;
+        }
+
+        .option input:disabled ~ .option-text {
+            opacity: 0.8;
         }
 
         .score-display {

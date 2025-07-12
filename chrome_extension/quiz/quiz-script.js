@@ -66,13 +66,44 @@ function renderQuiz(quizData, taskName = "Learning Quiz") {
 
 // Global functions for quiz interaction
 window.handleAnswer = function(questionIndex, selectedIndex, correctIndex) {
+    console.log('handleAnswer called:', { questionIndex, selectedIndex, correctIndex });
     const feedback = document.getElementById(`feedback_${questionIndex}`);
+    console.log('Feedback element:', feedback);
     const isCorrect = selectedIndex === correctIndex;
+    console.log('Is correct:', isCorrect);
     
-    // Update feedback
-    feedback.textContent = isCorrect ? '✅ Correct!' : '❌ Incorrect!';
-    feedback.className = `feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+    // Get all options for this question
+    const questionElement = document.querySelector(`[data-question="${questionIndex}"]`);
+    const options = questionElement.querySelectorAll('.option');
+    const radioInputs = questionElement.querySelectorAll('.radio-input');
+    
+    // Disable all radio inputs for this question after selection
+    radioInputs.forEach(input => {
+        input.disabled = true;
+    });
+    
+    // Remove any existing visual feedback classes
+    options.forEach(option => {
+        option.classList.remove('selected-correct', 'selected-incorrect', 'correct-answer');
+    });
+    
+    // Add visual feedback to the selected option
+    const selectedOption = options[selectedIndex];
+    if (isCorrect) {
+        selectedOption.classList.add('selected-correct');
+        feedback.textContent = '✅ Correct!';
+        feedback.className = 'feedback correct';
+    } else {
+        selectedOption.classList.add('selected-incorrect');
+        // Also highlight the correct answer
+        const correctOption = options[correctIndex];
+        correctOption.classList.add('correct-answer');
+        feedback.textContent = `❌ Incorrect!`;
+        feedback.className = 'feedback incorrect';
+    }
+    
     feedback.style.display = 'block';
+    console.log('Feedback display set to block, text:', feedback.textContent);
 
     // Update score
     updateScore();
