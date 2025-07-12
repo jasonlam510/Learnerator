@@ -10,7 +10,7 @@ load_dotenv()
 
 # Import types - avoid circular import
 from typing import List
-from vector_database import SearchResult, ChatResponse
+from .vector_database import SearchResult, ChatResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -59,7 +59,7 @@ class RAGChatbot:
             question = question.strip()
             
             # Search for relevant content
-            search_results = self.vector_db.search(question, limit=max_sources * 2)
+            search_results = self.vector_db.search_resources(question, limit=max_sources * 2)
             
             if not search_results:
                 return ChatResponse(
@@ -137,7 +137,7 @@ Context from Learning Resources:
 Question: {question}
 
 Instructions:
-- Provide a clear, concise answer based primarily on the given context
+- Provide a clear, short and concise answer based primarily on the given context
 - If referencing specific information, mention which source it comes from
 - If the context doesn't fully answer the question, be honest about limitations
 - Keep the answer focused and practical
@@ -185,7 +185,7 @@ Answer:"""
         """Generate similar questions that might be interesting to ask."""
         try:
             # Search for content related to the question
-            search_results = self.vector_db.search(question, limit=limit * 2)
+            search_results = self.vector_db.search_resources(question, limit=limit * 2)
             
             similar_questions = []
             for result in search_results:

@@ -1,0 +1,49 @@
+{
+  "task_name": "Exploring Agentic AI in Business Automation",
+  "task_stages": [
+    {
+      "stage_name": "Foundations of Agentic AI in Business",
+      "stage_details": "Understand what Agentic AI is, why it matters for business automation, and identify key beginner concepts and terminology.",
+      "urls": [
+        "https://beam.ai/agentic-insights/what-is-agentic-ai-the-2025-beginner-s-guide-for-entrepreneurs",
+        "https://www.capably.ai/resources/agentic-ai",
+        "https://www.mendix.com/blog/guide-to-agentic-ai/",
+        "https://www.chaione.com/blog/agentic-ai-a-beginners-guide"
+      ]
+    },
+    {
+      "stage_name": "Beginner Tools for Agentic AI and Automation",
+      "stage_details": "Get hands-on with beginner-friendly tools for Agentic AI, including low-code platforms, Microsoft Copilot, and simple Python frameworks.",
+      "urls": [
+        "https://www.youtube.com/watch?v=g5pY1Tb_r4g",
+        "https://www.youtube.com/watch?v=d-CuF6dlqLg",
+        "https://www.youtube.com/watch?v=vF2Z4T97xcQ",
+        "https://www.getpassionfruit.com/blog/how-to-build-your-first-ai-workflow-with-n8n-beginners-guide",
+        "https://www.udemy.com/course/ai-agents-ai-automation-the-practical-agentic-ai-guide/"
+      ]
+    },
+    {
+      "stage_name": "Real-World Business Use Cases and Case Studies",
+      "stage_details": "Discover how businesses are applying Agentic AI for customer service, support, and workflow optimization. Learn from practical examples and measurable outcomes.",
+      "urls": [
+        "https://www.vktr.com/ai-disruption/5-ai-case-studies-in-customer-service-and-support/",
+        "https://www.japeto.ai/chatbots-in-industry-customer-service-case-studies/",
+        "https://www.creolestudios.com/real-world-ai-agent-case-studies/",
+        "https://www.chaione.com/blog/agentic-ai-a-beginners-guide"
+      ]
+    },
+    {
+      "stage_name": "Building Your First Agentic AI Workflows",
+      "stage_details": "Apply your knowledge by building simple Agentic AI workflows using beginner-friendly tools and frameworks. Learn basic Python automation and explore agent frameworks like LangChain.",
+      "urls": [
+        "https://www.youtube.com/watch?v=8BV9TW490nQ",
+        "https://www.singlestore.com/blog/beginners-guide-to-langchain/",
+        "https://python.langchain.com/docs/tutorials/",
+        "https://www.youtube.com/watch?v=w0H1-b044KY",
+        "https://flowster.app/workflow-automation-for-beginners-secrets-to-success/",
+        "https://www.blinkops.com/blog/ai-workflow-automation"
+      ]
+    }
+  ],
+  "isfinished": false
+}

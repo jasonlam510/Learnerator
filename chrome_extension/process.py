@@ -17,7 +17,7 @@ class LearningPlan(BaseModel):
     stages: List[Stage]
 
 # Function to generate learning plan using Ollama
-def generate_learning_plan(topic: str, model: str = "llama2") -> LearningPlan:
+def generate_learning_plan(topic: str, model: str = "llama3.2") -> LearningPlan:
     if not topic or not topic.strip():
         raise ValueError("Topic cannot be empty")
 
@@ -97,13 +97,13 @@ app = FastAPI(
     
     ### Prerequisites:
     - Ollama installed and running locally
-    - Compatible model pulled (e.g., llama2, llama2, mistral)
+    - Compatible model pulled (e.g., llama3.2, llama3.2, mistral)
     
     ### Setup Ollama:
     ```bash
     # Install Ollama (visit ollama.ai for instructions)
     # Pull a model
-    ollama pull llama2
+    ollama pull llama3.2
     ```
     """,
     version="1.0.0"
@@ -131,7 +131,7 @@ class TopicRequest(BaseModel):
         schema_extra = {
             "example": {
                 "topic": "machine learning fundamentals",
-                "model": "llama2"
+                "model": "llama3.2"
             }
         }
 
@@ -147,7 +147,7 @@ async def generate_plan(request: TopicRequest):
     ```json
     {
         "topic": "your learning topic here",
-        "model": "llama2"
+        "model": "llama3.2"
     }
     ```
     
@@ -155,7 +155,7 @@ async def generate_plan(request: TopicRequest):
     ```bash
     curl -X POST "http://localhost:8000/generate-plan" \
          -H "Content-Type: application/json" \
-         -d '{"topic": "machine learning fundamentals", "model": "llama2"}'
+         -d '{"topic": "machine learning fundamentals", "model": "llama3.2"}'
     ```
     
     ## Response Format
@@ -205,8 +205,8 @@ async def generate_plan(request: TopicRequest):
     ## Available Models
     
     You can use any Ollama model that supports structured output:
-    - llama2c(recommended)
-    - llama2
+    - llama3.2c(recommended)
+    - llama3.2
     - mistral
     - codellama
     - And others available in your Ollama installation
@@ -256,7 +256,7 @@ async def health_check():
         # Test Ollama connection
         response = chat(
             messages=[{"role": "user", "content": "Hello"}],
-            model="llama2"
+            model="llama3.2"
         )
         return {
             "status": "healthy",
