@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatbotMessages = document.getElementById('chatbotMessages');
     const chatbotInput = document.getElementById('chatbotInput');
     const chatbotSend = document.getElementById('chatbotSend');
+    const quizButton = document.getElementById('quizButton');
 
 
     // Current learning plan data
@@ -371,6 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <li>💡 Suggesting practice exercises</li>
                     <li>❓ Answering questions about your current stage</li>
                     <li>🚀 Opening curated learning resources (click on any stage!)</li>
+                    <li>📝 Taking interactive quizzes to test your knowledge</li>
                 </ul>
                 <p>Just ask me anything about your learning journey!</p>
             `;
@@ -400,9 +402,27 @@ document.addEventListener('DOMContentLoaded', function() {
                     <li>Contribute to open-source projects</li>
                     <li>Create a portfolio website</li>
                     <li>Join coding communities and participate in discussions</li>
+                    <li>📝 Take interactive quizzes to test your knowledge</li>
                 </ul>
                 <p>Which stage would you like practice suggestions for?</p>
                 <p><em>💡 Click on any stage to open resources with practice exercises!</em></p>
+                <p><em>🎯 Or click the "Take Quiz" button to test your knowledge!</em></p>
+            `;
+        }
+        
+        if (message.includes('quiz') || message.includes('test') || message.includes('assessment')) {
+            return `
+                <p>📝 <strong>Great idea to test your knowledge!</strong></p>
+                <p>I can help you with interactive quizzes to assess your understanding of <strong>${currentTopic || 'your learning topic'}</strong>.</p>
+                <p>Click the green quiz button (📝) next to the chat input to open an interactive quiz in a new tab!</p>
+                <p>The quiz will help you:</p>
+                <ul>
+                    <li>🎯 Test your understanding of key concepts</li>
+                    <li>📊 Track your progress</li>
+                    <li>🔍 Identify areas that need more practice</li>
+                    <li>💡 Reinforce your learning</li>
+                </ul>
+                <p><em>💡 Tip: You can keep this chat open while taking the quiz for additional help!</em></p>
             `;
         }
         
@@ -414,9 +434,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <li>Specific stages in your plan</li>
                 <li>Learning resources and tutorials</li>
                 <li>Practice exercises and projects</li>
+                <li>📝 Taking quizzes to test your knowledge</li>
             </ul>
             <p>What would you like to know more about?</p>
             <p><em>💡 Remember: Click on any stage in your timeline to open curated learning resources!</em></p>
+            <p><em>🎯 Or click the "Take Quiz" button to test your knowledge!</em></p>
         `;
     }
 
@@ -427,6 +449,20 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'pending': return '#6b7280';
             default: return '#6b7280';
         }
+    }
+
+    // Function to open quiz in a new tab
+    function openQuiz() {
+        const quizUrl = chrome.runtime.getURL('quiz/template.html');
+        chrome.tabs.create({ url: quizUrl });
+        
+        // Add a message to the chatbot about the quiz
+        const quizMessage = `
+            <p>📝 <strong>Quiz opened in a new tab!</strong></p>
+            <p>Test your knowledge on <strong>${currentTopic || 'your learning topic'}</strong> with interactive questions.</p>
+            <p>💡 <em>Tip: You can keep this chat open while taking the quiz for additional help!</em></p>
+        `;
+        addMessage(quizMessage);
     }
 
     function sendMessage() {
@@ -531,6 +567,7 @@ document.addEventListener('DOMContentLoaded', function() {
     chatbotToggle.addEventListener('click', toggleChatbot);
     chatbotClose.addEventListener('click', closeChatbot);
     chatbotSend.addEventListener('click', sendMessage);
+    quizButton.addEventListener('click', openQuiz);
     
     chatbotInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {

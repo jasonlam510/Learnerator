@@ -7,11 +7,13 @@
     "activeTab",
     "tabs",
     "tabGroups",
-    "storage"
+    "storage",
+    "file://*"
   ],
   "host_permissions": [
     "http://localhost:8000/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "file://*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -34,5 +36,11 @@
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://localhost:3000 http://localhost:7000 http://localhost:8000"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["quiz/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 } 
