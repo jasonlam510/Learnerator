@@ -3,7 +3,8 @@
 A JavaScript-based learning plan generator that uses Ollama and local LLMs to create structured, comprehensive learning plans for any topic.
 
 ## Demo Video of our product
-[![Watch the demo]](https://youtu.be/PVROW5vvxSk)
+[![Watch the demo](https://img.youtube.com/vi/PVROW5vvxSk/maxresdefault.jpg)](https://youtu.be/PVROW5vvxSk)
+
 ## Features
 
 - 🎯 **Topic-based Learning Plans**: Generate personalized learning plans for any subject
